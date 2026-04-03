@@ -12,6 +12,9 @@ interface AppStore extends AppState {
   /** Slide-up panel for stats on viewports where the sidebar is hidden */
   mobileDataPanelOpen: boolean;
   setMobileDataPanelOpen: (open: boolean) => void;
+  /** Intro modal: scoped to map area only (does not cover chrome / sidebar) */
+  aboutModalOpen: boolean;
+  setAboutModalOpen: (open: boolean) => void;
 }
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -23,6 +26,7 @@ export const useAppStore = create<AppStore>((set) => ({
   darkMode: true,
   isPlaying: false,
   mobileDataPanelOpen: false,
+  aboutModalOpen: false,
 
   setYear: (year) => set({ selectedYear: year }),
   setPillar: (pillar) => set({ selectedPillar: pillar }),
@@ -32,4 +36,5 @@ export const useAppStore = create<AppStore>((set) => ({
   toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setMobileDataPanelOpen: (open) => set({ mobileDataPanelOpen: open }),
+  setAboutModalOpen: (open) => set({ aboutModalOpen: open }),
 }));

@@ -1,5 +1,6 @@
 import React from 'react';
 import Header from './Header';
+import AboutModal from './AboutModal';
 import MapSection from '../Map/MapSection';
 import ControlBar from '../Controls/ControlBar';
 import SidePanel from '../Panel/SidePanel';
@@ -11,6 +12,8 @@ export default function AppLayout() {
   const splitMode = useAppStore((s) => s.splitMode);
   const mobileDataPanelOpen = useAppStore((s) => s.mobileDataPanelOpen);
   const setMobileDataPanelOpen = useAppStore((s) => s.setMobileDataPanelOpen);
+  const aboutModalOpen = useAppStore((s) => s.aboutModalOpen);
+  const setAboutModalOpen = useAppStore((s) => s.setAboutModalOpen);
 
   return (
     <div className="flex flex-col h-[100dvh] min-h-0 overflow-hidden" style={{ background: 'var(--bg)' }}>
@@ -19,6 +22,7 @@ export default function AppLayout() {
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <div className={`flex-1 relative overflow-hidden min-h-0 ${splitMode ? 'flex' : ''}`} id="map-container">
           <MapSection />
+          {aboutModalOpen && <AboutModal onClose={() => setAboutModalOpen(false)} />}
         </div>
         <aside
           className="overflow-y-auto border-l hidden md:block shrink-0"

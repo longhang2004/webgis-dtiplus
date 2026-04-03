@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppStore } from '../../store/appStore';
-import AboutModal from './AboutModal';
 
 export default function Header() {
-  const { toggleDarkMode, darkMode, setMobileDataPanelOpen } = useAppStore();
-  const [showAbout, setShowAbout] = useState(false);
+  const { toggleDarkMode, darkMode, setMobileDataPanelOpen, setAboutModalOpen } = useAppStore();
 
   return (
     <>
@@ -34,7 +32,7 @@ export default function Header() {
           </button>
           <button
             type="button"
-            onClick={() => setShowAbout(true)}
+            onClick={() => setAboutModalOpen(true)}
             className="px-2 sm:px-3 py-1 text-xs rounded border transition-colors hover:opacity-80 whitespace-nowrap"
             style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
           >
@@ -51,7 +49,6 @@ export default function Header() {
           </button>
         </div>
       </header>
-      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
     </>
   );
 }
