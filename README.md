@@ -23,8 +23,8 @@ npm run dev   # http://localhost:3001
 ```
 
 ## Nhóm nghiên cứu
-- Chủ nhiệm: Lê Ngọc Phương Thu (MSSV: 2456080090)
-- Thành viên: Hằng Nhựt Long (MSSV: 2211874)
-- GVHD: ThS. Lê Khánh Hùng
+- Chủ nhiệm: Lê Ngọc Phương Thư (MSSV: 2456080090)
+- Thành viên: Hàng Nhựt Long (MSSV: 2211874)
+- GVHD: ThS. Lê Khánh Hưng
 
 Khoa Địa lý, ĐHKHXH&NV - ĐHQG TP.HCM, 2025

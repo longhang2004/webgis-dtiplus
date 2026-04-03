@@ -5,7 +5,7 @@ import { Year } from '../../types';
 const YEARS: Year[] = [2020, 2021, 2022, 2023, 2024, 2025];
 
 export default function PlayButton() {
-  const { isPlaying, setIsPlaying, selectedYear, setYear } = useAppStore();
+  const { isPlaying, setIsPlaying } = useAppStore();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import L, { PathOptions, GeoJSON as LGeoJSON } from 'leaflet';
 import { RegionId, Year, Pillar } from '../../types';
@@ -47,33 +47,28 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
         const regionId = feature.properties?.region_id as RegionId;
         const meta = REGION_META[regionId];
 
+        // Bind tooltip using Leaflet's built-in API
+        (layer as L.Path).bindTooltip(
+          () => {
+            const value = getDTIValue(regionId, propsRef.current.year, propsRef.current.pillar);
+            return `<strong style="color:#e2eaff">${meta?.name ?? regionId}</strong><br/>DTI+: <span style="color:#00d4aa;font-family:monospace;font-weight:600">${value.toFixed(3)}</span>`;
+          },
+          { sticky: true }
+        );
+
         layer.on('click', () => {
           propsRef.current.onRegionClick(
             propsRef.current.selectedRegion === regionId ? null : regionId
           );
         });
 
-        layer.on('mouseover', (e) => {
-          const value = getDTIValue(regionId, propsRef.current.year, propsRef.current.pillar);
+        layer.on('mouseover', () => {
           (layer as L.Path).setStyle({ weight: 2.5, fillOpacity: 1 });
-          L.tooltip({ sticky: true })
-            .setContent(`<strong>${meta?.name ?? regionId}</strong><br/>DTI+: <span style="color:#00d4aa;font-family:monospace">${value.toFixed(3)}</span>`)
-            .addTo(map)
-            .setLatLng(e.latlng);
         });
 
         layer.on('mouseout', () => {
           const id = feature.properties?.region_id ?? '';
           (layer as L.Path).setStyle(getStyle(id, id === propsRef.current.selectedRegion));
-          map.eachLayer((l) => { if ((l as L.Tooltip).getTooltipZIndex) map.removeLayer(l); });
-        });
-
-        layer.on('mousemove', (e) => {
-          map.eachLayer((l) => {
-            if ((l as unknown as { _content?: unknown })._content !== undefined && (l as L.Tooltip).setLatLng) {
-              (l as L.Tooltip).setLatLng(e.latlng);
-            }
-          });
         });
       },
     });

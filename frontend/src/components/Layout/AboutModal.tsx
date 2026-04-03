@@ -18,9 +18,9 @@ export default function AboutModal({ onClose }: Props) {
         <div className="space-y-3 text-xs" style={{ color: 'var(--muted)' }}>
           <div>
             <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>Nhóm nghiên cứu</p>
-            <p>• Chủ nhiệm: Lê Ngọc Phương Thu (MSSV: 2456080090)</p>
-            <p>• Thành viên: Hằng Nhựt Long (MSSV: 2211874)</p>
-            <p>• GVHD: ThS. Lê Khánh Hùng</p>
+            <p>• Chủ nhiệm: Lê Ngọc Phương Thư (MSSV: 2456080090)</p>
+            <p>• Thành viên: Hàng Nhựt Long (MSSV: 2211874)</p>
+            <p>• GVHD: ThS. Lê Khánh Hưng</p>
           </div>
           <div>
             <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>Đơn vị</p>

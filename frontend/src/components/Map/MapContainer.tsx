@@ -21,6 +21,11 @@ export default function MapContainer({ year, pillar, selectedRegion, onRegionCli
       style={{ width: '100%', height: '100%', background: '#070e1c' }}
       zoomControl={false}
     >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        opacity={0.15}
+      />
       <ZoomControl position="topright" />
       <ScaleControl position="bottomleft" imperial={false} />
       <ChoroplethLayer
