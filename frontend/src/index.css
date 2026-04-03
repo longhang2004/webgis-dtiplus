@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #070e1c;
+  --panel: #0c1628;
+  --border: #1a2d4d;
+  --accent: #00d4aa;
+  --accent2: #0ea5e9;
+  --text: #e2eaff;
+  --muted: #6b80a8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  background: #070e1c !important;
+}
+
+.leaflet-control-zoom a {
+  background: #0c1628 !important;
+  color: #e2eaff !important;
+  border-color: #1a2d4d !important;
+}
+
+.leaflet-control-scale-line {
+  background: rgba(7, 14, 28, 0.8) !important;
+  border-color: #1a2d4d !important;
+  color: #6b80a8 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #0c1628 !important;
+  border: 1px solid #1a2d4d !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: #0c1628 !important;
+}
+
+.leaflet-popup-content {
+  color: #e2eaff !important;
+  margin: 12px 16px !important;
+}
+
+.leaflet-tooltip {
+  background: rgba(12, 22, 40, 0.95) !important;
+  border: 1px solid #1a2d4d !important;
+  color: #e2eaff !important;
+  border-radius: 6px !important;
+  font-family: 'Be Vietnam Pro', sans-serif !important;
+}
+
+/* SVG path transition */
+.leaflet-interactive {
+  transition: fill 0.6s ease, fill-opacity 0.3s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0c1628;
+}
+::-webkit-scrollbar-thumb {
+  background: #1a2d4d;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00d4aa;
+}

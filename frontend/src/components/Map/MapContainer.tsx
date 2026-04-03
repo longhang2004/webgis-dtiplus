@@ -1,0 +1,35 @@
+import React from 'react';
+import { MapContainer as LeafletMap, TileLayer, ScaleControl, ZoomControl } from 'react-leaflet';
+import ChoroplethLayer from './ChoroplethLayer';
+import MapLegend from './MapLegend';
+import { RegionId, Year, Pillar } from '../../types';
+
+interface Props {
+  year: Year;
+  pillar: Pillar;
+  selectedRegion: RegionId | null;
+  onRegionClick: (id: RegionId | null) => void;
+}
+
+export default function MapContainer({ year, pillar, selectedRegion, onRegionClick }: Props) {
+  return (
+    <LeafletMap
+      center={[16.0, 107.5]}
+      zoom={6}
+      minZoom={5}
+      maxZoom={10}
+      style={{ width: '100%', height: '100%', background: '#070e1c' }}
+      zoomControl={false}
+    >
+      <ZoomControl position="topright" />
+      <ScaleControl position="bottomleft" imperial={false} />
+      <ChoroplethLayer
+        year={year}
+        pillar={pillar}
+        selectedRegion={selectedRegion}
+        onRegionClick={onRegionClick}
+      />
+      <MapLegend pillar={pillar} />
+    </LeafletMap>
+  );
+}
