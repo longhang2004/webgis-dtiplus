@@ -43,9 +43,12 @@ export default function MapSection() {
 
   if (splitMode) {
     return (
-      <div className="flex h-full w-full">
+      <div className="flex h-full w-full min-h-0 flex-col md:flex-row">
         {/* Left panel — splitYear */}
-        <div className="flex-1 relative border-r" style={{ borderColor: 'var(--border)' }}>
+        <div
+          className="relative min-h-[42vh] flex-1 border-b md:min-h-0 md:border-b-0 md:border-r"
+          style={{ borderColor: 'var(--border)' }}
+        >
           <YearBadge year={splitYear} onChange={setSplitYear} />
           <MapContainer
             year={splitYear}
@@ -55,7 +58,7 @@ export default function MapSection() {
           />
         </div>
         {/* Right panel — selectedYear */}
-        <div className="flex-1 relative">
+        <div className="relative min-h-[42vh] flex-1 md:min-h-0">
           <YearBadge year={selectedYear} onChange={setYear} />
           <MapContainer
             year={selectedYear}

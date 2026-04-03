@@ -9,6 +9,9 @@ interface AppStore extends AppState {
   setSplitYear: (year: Year) => void;
   toggleDarkMode: () => void;
   setIsPlaying: (playing: boolean) => void;
+  /** Slide-up panel for stats on viewports where the sidebar is hidden */
+  mobileDataPanelOpen: boolean;
+  setMobileDataPanelOpen: (open: boolean) => void;
 }
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -19,6 +22,7 @@ export const useAppStore = create<AppStore>((set) => ({
   splitYear: 2020,
   darkMode: true,
   isPlaying: false,
+  mobileDataPanelOpen: false,
 
   setYear: (year) => set({ selectedYear: year }),
   setPillar: (pillar) => set({ selectedPillar: pillar }),
@@ -27,4 +31,5 @@ export const useAppStore = create<AppStore>((set) => ({
   setSplitYear: (year) => set({ splitYear: year }),
   toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
   setIsPlaying: (playing) => set({ isPlaying: playing }),
+  setMobileDataPanelOpen: (open) => set({ mobileDataPanelOpen: open }),
 }));
