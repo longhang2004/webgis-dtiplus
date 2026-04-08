@@ -17,19 +17,20 @@ const LEGEND_ITEMS = [
 function LegendContent({ pillar }: { pillar: Pillar }) {
   return (
     <div style={{
-      background: 'rgba(12,22,40,0.95)',
-      border: '1px solid #1a2d4d',
+      background: 'var(--panel)',
+      border: '1px solid var(--border)',
       borderRadius: '8px',
       padding: '10px 12px',
       minWidth: '160px',
+      opacity: 0.95,
     }}>
-      <p style={{ color: '#00d4aa', fontSize: '11px', fontWeight: 600, marginBottom: '8px' }}>
+      <p style={{ color: 'var(--accent)', fontSize: '11px', fontWeight: 600, marginBottom: '8px' }}>
         {PILLAR_LABELS[pillar]}
       </p>
       {LEGEND_ITEMS.map((item) => (
         <div key={item.color} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
           <div style={{ width: '14px', height: '14px', borderRadius: '3px', background: item.color, flexShrink: 0 }} />
-          <span style={{ color: '#e2eaff', fontSize: '11px' }}>{item.label}</span>
+          <span style={{ color: 'var(--text)', fontSize: '11px' }}>{item.label}</span>
         </div>
       ))}
     </div>

@@ -28,7 +28,7 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
     return {
       fillColor: getDTIColor(value),
       weight: isSelected ? 3 : 1.5,
-      color: isSelected ? '#00d4aa' : '#0c1628',
+      color: isSelected ? '#00d4aa' : getComputedStyle(document.documentElement).getPropertyValue('--panel').trim() || '#0c1628',
       fillOpacity: 0.85,
     };
   };

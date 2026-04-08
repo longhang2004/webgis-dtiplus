@@ -18,7 +18,7 @@ export default function MapContainer({ year, pillar, selectedRegion, onRegionCli
       zoom={6}
       minZoom={5}
       maxZoom={10}
-      style={{ width: '100%', height: '100%', background: '#070e1c' }}
+      style={{ width: '100%', height: '100%' }}
       zoomControl={false}
     >
       <TileLayer

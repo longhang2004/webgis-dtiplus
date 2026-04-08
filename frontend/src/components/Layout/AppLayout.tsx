@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import Header from './Header';
 import AboutModal from './AboutModal';
 import MapSection from '../Map/MapSection';
@@ -10,6 +10,14 @@ import { useAppStore } from '../../store/appStore';
 export default function AppLayout() {
   useUrlState();
   const splitMode = useAppStore((s) => s.splitMode);
+  const darkMode = useAppStore((s) => s.darkMode);
+
+  // Sync dark/light class on <html>
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('dark', 'light');
+    root.classList.add(darkMode ? 'dark' : 'light');
+  }, [darkMode]);
   const mobileDataPanelOpen = useAppStore((s) => s.mobileDataPanelOpen);
   const setMobileDataPanelOpen = useAppStore((s) => s.setMobileDataPanelOpen);
   const aboutModalOpen = useAppStore((s) => s.aboutModalOpen);
