@@ -17,7 +17,7 @@ export default function Header() {
               <span className="hidden sm:inline">WebGIS DTI+ | Phân hóa không gian phát triển số Việt Nam</span>
             </h1>
             <p className="text-[10px] sm:text-xs truncate hidden sm:block" style={{ color: 'var(--muted)' }}>
-              Khoa Địa lý · ĐHKHXH&NV · ĐHQG TP.HCM · 2025
+              Khoa Địa Lý - Đô Thị · ĐHKHXH&NV · ĐHQG TP.HCM · 2025
             </p>
           </div>
         </div>

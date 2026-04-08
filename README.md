@@ -27,4 +27,4 @@ npm run dev   # http://localhost:3001
 - Thành viên: Hàng Nhựt Long (MSSV: 2211874)
 - GVHD: ThS. Lê Khánh Hưng
 
-Khoa Địa lý, ĐHKHXH&NV - ĐHQG TP.HCM, 2025
+Khoa Địa Lý - Đô Thị, ĐHKHXH&NV - ĐHQG TP.HCM, 2025

@@ -67,7 +67,7 @@ export default function AboutModal({ onClose }: Props) {
               Đơn vị
             </p>
             <p style={{ color: 'var(--text)' }}>
-              Khoa Địa lý, Trường Đại học Khoa học Xã hội và Nhân văn, ĐHQG TP.HCM
+              Khoa Địa Lý - Đô Thị, Trường Đại học Khoa học Xã hội và Nhân văn, ĐHQG TP.HCM
             </p>
           </div>
           <div>
