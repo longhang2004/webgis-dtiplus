@@ -1,14 +1,25 @@
-import React from 'react';
-import { MapContainer as LeafletMap, TileLayer, ScaleControl, ZoomControl } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { MapContainer as LeafletMap, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import ChoroplethLayer from './ChoroplethLayer';
 import MapLegend from './MapLegend';
 import { RegionId, Year, Pillar } from '../../types';
+import { setMapInstance } from '../../store/appStore';
 
 interface Props {
   year: Year;
   pillar: Pillar;
   selectedRegion: RegionId | null;
   onRegionClick: (id: RegionId | null) => void;
+}
+
+/** Register Leaflet map instance globally for export */
+function MapRegistrar() {
+  const map = useMap();
+  useEffect(() => {
+    setMapInstance(map);
+    return () => setMapInstance(null);
+  }, [map]);
+  return null;
 }
 
 export default function MapContainer({ year, pillar, selectedRegion, onRegionClick }: Props) {
@@ -21,6 +32,7 @@ export default function MapContainer({ year, pillar, selectedRegion, onRegionCli
       style={{ width: '100%', height: '100%' }}
       zoomControl={false}
     >
+      <MapRegistrar />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

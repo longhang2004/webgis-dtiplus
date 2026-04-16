@@ -43,31 +43,49 @@ export default function MapSection() {
 
   if (splitMode) {
     return (
-      <div className="flex h-full w-full min-h-0 flex-col md:flex-row">
-        {/* Left panel — splitYear */}
-        <div
-          className="relative min-h-[42vh] flex-1 border-b md:min-h-0 md:border-b-0 md:border-r"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <YearBadge year={splitYear} onChange={setSplitYear} />
-          <MapContainer
-            year={splitYear}
-            pillar={selectedPillar}
-            selectedRegion={selectedRegion}
-            onRegionClick={setRegion}
-          />
+      <>
+        {/* Tablet+ : side-by-side maps */}
+        <div className="hidden md:flex h-full w-full min-h-0 flex-row">
+          <div
+            className="relative flex-1 border-r"
+            style={{ borderColor: 'var(--border)' }}
+          >
+            <YearBadge year={splitYear} onChange={setSplitYear} />
+            <MapContainer
+              year={splitYear}
+              pillar={selectedPillar}
+              selectedRegion={selectedRegion}
+              onRegionClick={setRegion}
+            />
+          </div>
+          <div className="relative flex-1">
+            <YearBadge year={selectedYear} onChange={setYear} />
+            <MapContainer
+              year={selectedYear}
+              pillar={selectedPillar}
+              selectedRegion={selectedRegion}
+              onRegionClick={setRegion}
+            />
+          </div>
         </div>
-        {/* Right panel — selectedYear */}
-        <div className="relative min-h-[42vh] flex-1 md:min-h-0">
-          <YearBadge year={selectedYear} onChange={setYear} />
-          <MapContainer
-            year={selectedYear}
-            pillar={selectedPillar}
-            selectedRegion={selectedRegion}
-            onRegionClick={setRegion}
-          />
+        {/* Mobile: single map + hint */}
+        <div className="flex flex-col h-full w-full md:hidden">
+          <div
+            className="text-center text-xs py-1.5 border-b"
+            style={{ color: 'var(--muted)', borderColor: 'var(--border)', background: 'var(--panel)' }}
+          >
+            So sánh chỉ khả dụng trên màn hình rộng hơn
+          </div>
+          <div className="relative flex-1 min-h-0">
+            <MapContainer
+              year={selectedYear}
+              pillar={selectedPillar}
+              selectedRegion={selectedRegion}
+              onRegionClick={setRegion}
+            />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 

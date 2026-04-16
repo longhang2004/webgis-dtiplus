@@ -33,7 +33,7 @@ export default function AppLayout() {
           {aboutModalOpen && <AboutModal onClose={() => setAboutModalOpen(false)} />}
         </div>
         <aside
-          className="overflow-y-auto border-l hidden md:block shrink-0"
+          className="overflow-y-auto border-l hidden lg:block shrink-0"
           style={{ width: 'min(360px, 34vw)', minWidth: '260px', borderColor: 'var(--border)', background: 'var(--panel)' }}
         >
           <SidePanel />
@@ -41,7 +41,7 @@ export default function AppLayout() {
       </div>
 
       {mobileDataPanelOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden">
           <button
             type="button"
             className="absolute inset-0 w-full h-full border-0 cursor-default"

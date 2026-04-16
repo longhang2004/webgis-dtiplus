@@ -25,7 +25,7 @@ export default function Header() {
           <button
             type="button"
             onClick={() => setMobileDataPanelOpen(true)}
-            className="md:hidden px-2.5 py-1.5 text-xs rounded border transition-colors hover:opacity-80 whitespace-nowrap"
+            className="lg:hidden px-2.5 py-1.5 text-xs rounded border transition-colors hover:opacity-80 whitespace-nowrap"
             style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
           >
             Số liệu

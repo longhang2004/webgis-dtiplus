@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAppStore } from '../../store/appStore';
 import { Year } from '../../types';
 
@@ -8,8 +7,8 @@ export default function YearSlider() {
   const { selectedYear, setYear } = useAppStore();
 
   return (
-    <div className="flex items-center gap-2 flex-1 min-w-0">
-      <span className="text-xs whitespace-nowrap font-mono" style={{ color: 'var(--accent)', minWidth: '60px' }}>
+    <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+      <span className="text-xs whitespace-nowrap font-mono font-semibold" style={{ color: 'var(--accent)' }}>
         {selectedYear}{selectedYear === 2025 ? '*' : ''}
       </span>
       <input
@@ -18,10 +17,10 @@ export default function YearSlider() {
         max={YEARS.length - 1}
         value={YEARS.indexOf(selectedYear)}
         onChange={(e) => setYear(YEARS[parseInt(e.target.value)])}
-        className="flex-1 accent-teal-400"
+        className="flex-1 min-w-[60px]"
         style={{ accentColor: 'var(--accent)' }}
       />
-      <div className="hidden sm:flex gap-1">
+      <div className="hidden lg:flex gap-1">
         {YEARS.map((y) => (
           <button
             key={y}

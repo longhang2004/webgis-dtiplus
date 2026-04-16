@@ -1,5 +1,11 @@
 import { create } from 'zustand';
+import L from 'leaflet';
 import { RegionId, Year, Pillar, AppState } from '../types';
+
+/** Globally accessible map instance for export/screenshot */
+let _mapInstance: L.Map | null = null;
+export function setMapInstance(map: L.Map | null) { _mapInstance = map; }
+export function getMapInstance() { return _mapInstance; }
 
 interface AppStore extends AppState {
   setYear: (year: Year) => void;
