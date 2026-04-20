@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 import MapContainer from './MapContainer';
 import { Year } from '../../types';
@@ -40,6 +41,7 @@ export default function MapSection() {
     splitMode, selectedYear, splitYear, setSplitYear,
     selectedPillar, selectedRegion, setRegion, setYear,
   } = useAppStore();
+  const { t } = useTranslation();
 
   if (splitMode) {
     return (
@@ -74,7 +76,7 @@ export default function MapSection() {
             className="text-center text-xs py-1.5 border-b"
             style={{ color: 'var(--muted)', borderColor: 'var(--border)', background: 'var(--panel)' }}
           >
-            So sánh chỉ khả dụng trên màn hình rộng hơn
+            {t('controls.split_mobile_hint')}
           </div>
           <div className="relative flex-1 min-h-0">
             <MapContainer

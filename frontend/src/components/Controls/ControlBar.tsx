@@ -3,11 +3,13 @@ import YearSlider from './YearSlider';
 import PlayButton from './PlayButton';
 import PillarSelector from './PillarSelector';
 import { useAppStore } from '../../store/appStore';
+import { useTranslation } from 'react-i18next';
 import { exportCSV } from '../../utils/exportUtils';
 import { getDTIForYear } from '../../data/dti-data';
 
 export default function ControlBar() {
   const { selectedYear, selectedPillar, selectedRegion, splitMode, darkMode, toggleSplitMode } = useAppStore();
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleExportCSV = () => {
@@ -49,7 +51,7 @@ export default function ControlBar() {
             color: splitMode ? 'var(--accent)' : 'var(--muted)',
           }}
         >
-          So sánh
+          {t('controls.compare')}
         </button>
         <button
           onClick={handleExportCSV}
@@ -92,21 +94,21 @@ export default function ControlBar() {
                 className="w-full text-left px-3 py-2 text-xs hover:opacity-80 hidden md:block"
                 style={{ color: splitMode ? 'var(--accent)' : 'var(--text)' }}
               >
-                {splitMode ? '✓ ' : ''}So sánh
+                {splitMode ? '✓ ' : ''}{t('controls.compare')}
               </button>
               <button
                 onClick={handleExportCSV}
                 className="w-full text-left px-3 py-2 text-xs hover:opacity-80"
                 style={{ color: 'var(--text)' }}
               >
-                ↓ Xuất CSV
+                ↓ {t('controls.export_csv')}
               </button>
               <button
                 onClick={handleExportPNG}
                 className="w-full text-left px-3 py-2 text-xs hover:opacity-80"
                 style={{ color: 'var(--text)' }}
               >
-                ↓ Xuất PNG
+                ↓ {t('controls.export_png')}
               </button>
             </div>
           </>

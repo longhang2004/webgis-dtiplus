@@ -1,12 +1,13 @@
 import React from 'react';
 import { useAppStore } from '../../store/appStore';
 import { Pillar } from '../../types';
-import { PILLAR_LABELS } from '../../utils/colorScale';
+import { useTranslation } from 'react-i18next';
 
 const PILLARS: Pillar[] = ['total', 'gov', 'econ', 'soc'];
 
 export default function PillarSelector() {
   const { selectedPillar, setPillar } = useAppStore();
+  const { t } = useTranslation();
 
   return (
     <select
@@ -20,7 +21,7 @@ export default function PillarSelector() {
       }}
     >
       {PILLARS.map((p) => (
-        <option key={p} value={p}>{PILLAR_LABELS[p]}</option>
+        <option key={p} value={p}>{t(`pillars.${p}`)}</option>
       ))}
     </select>
   );

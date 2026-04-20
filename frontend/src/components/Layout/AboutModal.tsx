@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   onClose: () => void;
 }
 
 export default function AboutModal({ onClose }: Props) {
+  const { t } = useTranslation();
   return (
     <div
       role="dialog"
@@ -36,53 +38,53 @@ export default function AboutModal({ onClose }: Props) {
             className="text-xl sm:text-2xl font-semibold leading-snug pr-2"
             style={{ color: 'var(--accent)' }}
           >
-            Giới thiệu đề tài
+            {t('about.title')}
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="shrink-0 text-2xl leading-none w-9 h-9 rounded-lg flex items-center justify-center hover:opacity-80"
             style={{ color: 'var(--muted)', background: 'rgba(26, 45, 77, 0.35)' }}
-            aria-label="Đóng"
+            aria-label={t('about.close')}
           >
             ×
           </button>
         </div>
         <h3 className="text-base sm:text-lg font-semibold mb-5 leading-relaxed" style={{ color: 'var(--text)' }}>
-          Phân tích sự phân hóa không gian của hạ tầng và năng lực số giữa các vùng kinh tế Việt Nam giai đoạn 2020–2025 bằng WebGIS
+          {t('about.subtitle')}
         </h3>
         <div className="space-y-5 text-base leading-relaxed" style={{ color: 'var(--text)' }}>
           <div>
             <p className="font-semibold mb-2 text-base" style={{ color: 'var(--accent2)' }}>
-              Nhóm nghiên cứu
+              {t('about.team_label')}
             </p>
             <ul className="list-disc pl-5 space-y-2 marker:text-[var(--muted)]" style={{ color: 'var(--text)' }}>
-              <li>Chủ nhiệm: Lê Ngọc Phương Thư (MSSV: 2456080090)</li>
-              <li>Thành viên: Hàng Nhựt Long (MSSV: 2211874)</li>
-              <li>GVHD: ThS. Lê Khánh Hưng</li>
+              <li>{t('about.lead')}</li>
+              <li>{t('about.member')}</li>
+              <li>{t('about.supervisor')}</li>
             </ul>
           </div>
           <div>
             <p className="font-semibold mb-2 text-base" style={{ color: 'var(--accent2)' }}>
-              Đơn vị
+              {t('about.institution_label')}
             </p>
             <p style={{ color: 'var(--text)' }}>
-              Khoa Địa Lý - Đô Thị, Trường Đại học Khoa học Xã hội và Nhân văn, ĐHQG TP.HCM
+              {t('about.institution_desc')}
             </p>
           </div>
           <div>
             <p className="font-semibold mb-2 text-base" style={{ color: 'var(--accent2)' }}>
-              Về chỉ số DTI+
+              {t('about.dti_label')}
             </p>
             <p style={{ color: 'var(--text)' }}>
-              Chỉ số DTI+ là chỉ số tổng hợp mở rộng được xây dựng từ dữ liệu DTI chính thức của Bộ TT&TT, tổng hợp theo 6 vùng kinh tế bằng phương pháp trung bình gia quyền dân số. Thang đo 0–1, càng cao càng phát triển số.
+              {t('about.dti_desc')}
             </p>
           </div>
           <p
             className="italic pt-3 text-sm border-t"
             style={{ color: 'var(--muted)', borderColor: 'rgba(26, 45, 77, 0.8)' }}
           >
-            * Số liệu năm 2025 là ước tính dựa trên xu hướng giai đoạn 2020–2024.
+            {t('about.note_2025')}
           </p>
         </div>
       </div>

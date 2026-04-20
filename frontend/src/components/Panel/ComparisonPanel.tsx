@@ -1,7 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 import { getDTIForYear, getDTIValue } from '../../data/dti-data';
 import { REGION_META } from '../../data/region-meta';
-import { getDTIColor, REGION_COLORS, PILLAR_LABELS } from '../../utils/colorScale';
+import { getDTIColor, REGION_COLORS } from '../../utils/colorScale';
 import { computeStats, getRanking } from '../../utils/statistics';
 import { RegionId, Year, Pillar } from '../../types';
 
@@ -19,6 +20,7 @@ function formatDiff(val: number): string {
 
 export default function ComparisonPanel() {
   const { splitYear, selectedYear, selectedPillar, selectedRegion, setRegion } = useAppStore();
+  const { t } = useTranslation();
 
   const fromData = getDTIForYear(splitYear);
   const toData = getDTIForYear(selectedYear);
@@ -50,17 +52,17 @@ export default function ComparisonPanel() {
       {/* Header */}
       <div className="rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>SO SÁNH</p>
+          <p className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>{t('panel.compare_title')}</p>
           <span className="text-xs font-mono px-2 py-0.5 rounded" style={{ background: 'var(--border)', color: 'var(--accent)' }}>
             {yearLabel}
           </span>
         </div>
-        <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{PILLAR_LABELS[selectedPillar]}</p>
+        <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>{t(`pillars.${selectedPillar}`)}</p>
 
         {/* Summary stats */}
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded p-2" style={{ background: 'var(--panel)' }}>
-            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>TB quốc gia</p>
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>{t('panel.compare_summary_mean')}</p>
             <p className="text-sm font-mono font-semibold" style={{ color: meanDiff >= 0 ? '#00d4aa' : '#ef4444' }}>
               {formatDiff(meanDiff)}
             </p>
@@ -69,7 +71,7 @@ export default function ComparisonPanel() {
             </p>
           </div>
           <div className="rounded p-2" style={{ background: 'var(--panel)' }}>
-            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Khoảng cách</p>
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>{t('panel.compare_summary_range')}</p>
             <p className="text-sm font-mono font-semibold" style={{ color: gapDiff <= 0 ? '#00d4aa' : '#ef4444' }}>
               {formatDiff(gapDiff)}
             </p>
@@ -78,7 +80,7 @@ export default function ComparisonPanel() {
             </p>
           </div>
           <div className="rounded p-2" style={{ background: 'var(--panel)' }}>
-            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Hệ số CV</p>
+            <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>{t('panel.compare_summary_cv')}</p>
             <p className="text-sm font-mono font-semibold" style={{ color: cvDiff <= 0 ? '#00d4aa' : '#ef4444' }}>
               {cvDiff >= 0 ? '+' : ''}{cvDiff.toFixed(1)}%
             </p>
@@ -91,7 +93,7 @@ export default function ComparisonPanel() {
 
       {/* Per-region comparison */}
       <div className="rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
-        <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>THAY ĐỔI THEO VÙNG</p>
+        <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>{t('panel.compare_region_title')}</p>
         <div className="space-y-3">
           {regionChanges.map(({ id, from, to, diff, pctChange }) => {
             const meta = REGION_META[id];
@@ -113,7 +115,7 @@ export default function ComparisonPanel() {
                       className="text-xs font-medium"
                       style={{ color: isSelected ? 'var(--accent)' : 'var(--text)' }}
                     >
-                      {meta?.shortName ?? id}
+                      {meta?.id ? t(`regions.${meta.id}.shortName`) : id}
                     </span>
                     {rankDiff !== 0 && (
                       <span className="text-xs font-mono" style={{ color: rankDiff > 0 ? '#00d4aa' : rankDiff < 0 ? '#ef4444' : 'var(--muted)' }}>
@@ -191,7 +193,7 @@ export default function ComparisonPanel() {
 
       {/* Convergence analysis */}
       <div className="rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
-        <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>PHÂN TÍCH HỘI TỤ</p>
+        <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>{t('panel.convergence_title')}</p>
         <div className="space-y-2 text-xs" style={{ color: 'var(--muted)' }}>
           <div className="flex items-center gap-2">
             <div
@@ -199,11 +201,11 @@ export default function ComparisonPanel() {
               style={{ background: gapDiff <= 0 ? '#00d4aa' : '#ef4444' }}
             />
             <span>
-              Khoảng cách max−min{' '}
+              {t('panel.convergence_range')}{' '}
               <strong style={{ color: gapDiff <= 0 ? '#00d4aa' : '#ef4444' }}>
-                {gapDiff <= 0 ? 'thu hẹp' : 'mở rộng'}
+                {gapDiff <= 0 ? t('panel.narrowed') : t('panel.widened')}
               </strong>
-              {' '}{Math.abs(gapDiff).toFixed(3)} điểm
+              {' '}{Math.abs(gapDiff).toFixed(3)} {t('panel.points')}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -212,9 +214,9 @@ export default function ComparisonPanel() {
               style={{ background: cvDiff <= 0 ? '#00d4aa' : '#ef4444' }}
             />
             <span>
-              Hệ số biến thiên (CV){' '}
+              {t('panel.convergence_cv')}{' '}
               <strong style={{ color: cvDiff <= 0 ? '#00d4aa' : '#ef4444' }}>
-                {cvDiff <= 0 ? 'giảm' : 'tăng'}
+                {cvDiff <= 0 ? t('panel.decreased') : t('panel.increased')}
               </strong>
               {' '}{Math.abs(cvDiff).toFixed(1)}%
             </span>
@@ -222,9 +224,9 @@ export default function ComparisonPanel() {
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ background: '#0ea5e9' }} />
             <span>
-              Vùng cải thiện nhiều nhất:{' '}
+              {t('panel.most_improved')}{' '}
               <strong style={{ color: 'var(--text)' }}>
-                {REGION_META[regionChanges[0]?.id]?.shortName}
+                {regionChanges[0]?.id ? t(`regions.${regionChanges[0].id}.shortName`) : ''}
               </strong>
               {' '}({formatDiff(regionChanges[0]?.diff ?? 0)})
             </span>
@@ -232,9 +234,9 @@ export default function ComparisonPanel() {
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ background: '#f59e0b' }} />
             <span>
-              Vùng cải thiện ít nhất:{' '}
+              {t('panel.least_improved')}{' '}
               <strong style={{ color: 'var(--text)' }}>
-                {REGION_META[regionChanges[regionChanges.length - 1]?.id]?.shortName}
+                {regionChanges[regionChanges.length - 1]?.id ? t(`regions.${regionChanges[regionChanges.length - 1].id}.shortName`) : ''}
               </strong>
               {' '}({formatDiff(regionChanges[regionChanges.length - 1]?.diff ?? 0)})
             </span>

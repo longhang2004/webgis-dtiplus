@@ -3,6 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceLine, Legend, ResponsiveContainer, Dot
 } from 'recharts';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 import { DTI_DATA } from '../../data/dti-data';
 import { REGION_META } from '../../data/region-meta';
@@ -14,6 +15,7 @@ const YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
 
 export default function TrendChart() {
   const { selectedPillar, selectedRegion, selectedYear, setRegion } = useAppStore();
+  const { t } = useTranslation();
 
   const chartData = YEARS.map((year) => {
     const row: Record<string, number | string> = { year: String(year) + (year === 2025 ? '*' : '') };
@@ -26,7 +28,7 @@ export default function TrendChart() {
 
   return (
     <div className="rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
-      <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>XU HƯỚNG 2020–2025</p>
+      <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>{t('panel.trend_title')}</p>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1a2d4d" />
@@ -53,7 +55,7 @@ export default function TrendChart() {
               strokeOpacity={!selectedRegion || selectedRegion === id ? 1 : 0.2}
               dot={false}
               activeDot={{ r: 4, fill: REGION_COLORS[id] }}
-              name={REGION_META[id]?.shortName ?? id}
+              name={t(`regions.${id}.shortName`, { defaultValue: id })}
             />
           ))}
           <Legend

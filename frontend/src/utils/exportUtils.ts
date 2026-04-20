@@ -1,21 +1,31 @@
 import L from 'leaflet';
 import { DTIRecord, Pillar, Year, RegionId } from '../types';
 import { REGION_META } from '../data/region-meta';
-import { PILLAR_LABELS, getDTIColor, getDTIColorLabel } from './colorScale';
+import { getDTIColor, getDTIColorLabel } from './colorScale';
 import { getDTIForYear } from '../data/dti-data';
 import { getMapInstance } from '../store/appStore';
+import i18n from '../i18n';
 
 export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): void {
-  const header = ['Vùng', 'Tên vùng', 'Năm', 'DTI+ Tổng hợp', 'Chính quyền số', 'Kinh tế số', 'Xã hội số', 'Ước tính'];
+  const header = [
+    i18n.t('map.region_col'), 
+    i18n.t('map.region_name_col'), 
+    i18n.t('map.year_col'), 
+    i18n.t('pillars.total'), 
+    i18n.t('pillars.gov'), 
+    i18n.t('pillars.econ'), 
+    i18n.t('pillars.soc'), 
+    i18n.t('map.estimate_col')
+  ];
   const rows = records.map((r) => [
     r.regionId,
-    REGION_META[r.regionId]?.name ?? r.regionId,
+    i18n.t(`regions.${r.regionId}.name`, { defaultValue: REGION_META[r.regionId]?.name ?? r.regionId }),
     r.year,
     r.total,
     r.gov,
     r.econ,
     r.soc,
-    r.isEstimate ? 'Có' : 'Không',
+    r.isEstimate ? i18n.t('map.yes') : i18n.t('map.no'),
   ]);
   const csv = [header, ...rows].map((row) => row.join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -126,18 +136,19 @@ export async function exportMapPNG(
 
   ctx.fillStyle = accent;
   ctx.font = `bold ${20 * s}px -apple-system, "Segoe UI", sans-serif`;
-  ctx.fillText('WebGIS DTI+', 20 * s, 38 * s);
+  ctx.fillText(i18n.t('header.app_title'), 20 * s, 38 * s);
 
   ctx.fillStyle = muted;
   ctx.font = `${12 * s}px -apple-system, "Segoe UI", sans-serif`;
-  const subtitle = `${PILLAR_LABELS[pillar]} — Năm ${year}${year === 2025 ? ' (ước tính)' : ''}`;
+  const estText = year === 2025 ? ` (${i18n.t('map.estimate_col')})` : '';
+  const subtitle = `${i18n.t(`pillars.${pillar}`)} — ${i18n.t('controls.year', { year })}${estText}`;
   ctx.fillText(subtitle, 200 * s, 38 * s);
 
   if (selectedRegion) {
     const meta = REGION_META[selectedRegion];
     ctx.fillStyle = accent;
     ctx.font = `${12 * s}px -apple-system, "Segoe UI", sans-serif`;
-    ctx.fillText(`Vùng: ${meta?.name ?? selectedRegion}`, 200 * s, 54 * s);
+    ctx.fillText(`${i18n.t('map.region_prefix')}${i18n.t(`regions.${selectedRegion}.name`, { defaultValue: meta?.name ?? selectedRegion })}`, 200 * s, 54 * s);
   }
 
   // --- Map ---
@@ -156,7 +167,7 @@ export async function exportMapPNG(
   let py = mapY + 24 * s;
   ctx.fillStyle = accent;
   ctx.font = `bold ${14 * s}px -apple-system, "Segoe UI", sans-serif`;
-  ctx.fillText('Số liệu vùng kinh tế', panelX + 16 * s, py);
+  ctx.fillText(i18n.t('map.region_data_title'), panelX + 16 * s, py);
   py += 8 * s;
 
   // Separator
@@ -168,11 +179,11 @@ export async function exportMapPNG(
   // Column headers
   ctx.fillStyle = muted;
   ctx.font = `${10 * s}px -apple-system, "Segoe UI", sans-serif`;
-  ctx.fillText('Vùng', panelX + 16 * s, py);
-  ctx.fillText('Tổng', panelX + 240 * s, py);
-  ctx.fillText('CQS', panelX + 290 * s, py);
-  ctx.fillText('KTS', panelX + 335 * s, py);
-  ctx.fillText('XHS', panelX + 380 * s, py);
+  ctx.fillText(i18n.t('map.region_col'), panelX + 16 * s, py);
+  ctx.fillText(i18n.t('map.col_total'), panelX + 240 * s, py);
+  ctx.fillText(i18n.t('map.col_gov'), panelX + 290 * s, py);
+  ctx.fillText(i18n.t('map.col_econ'), panelX + 335 * s, py);
+  ctx.fillText(i18n.t('map.col_soc'), panelX + 380 * s, py);
   py += 6 * s;
 
   ctx.fillStyle = border;
@@ -192,10 +203,11 @@ export async function exportMapPNG(
     // Region name
     ctx.fillStyle = isSelected ? accent : text;
     ctx.font = `${isSelected ? 'bold ' : ''}${11 * s}px -apple-system, "Segoe UI", sans-serif`;
-    ctx.fillText(meta?.shortName ?? rec.regionId, panelX + 28 * s, py + 4 * s);
+    ctx.fillText(i18n.t(`regions.${rec.regionId}.shortName`, { defaultValue: meta?.shortName ?? rec.regionId }), panelX + 28 * s, py + 4 * s);
 
     // Level label
-    const levelLabel = getDTIColorLabel(rec[pillar]);
+    const levelLabelKey = getDTIColorLabel(rec[pillar]);
+    const levelLabel = i18n.t(`color_labels.${levelLabelKey}`);
     ctx.fillStyle = color;
     ctx.font = `${9 * s}px -apple-system, "Segoe UI", sans-serif`;
     ctx.fillText(levelLabel, panelX + 28 * s, py + 18 * s);
@@ -227,14 +239,17 @@ export async function exportMapPNG(
 
   ctx.fillStyle = muted;
   ctx.font = `${10 * s}px -apple-system, "Segoe UI", sans-serif`;
-  ctx.fillText('Thống kê tổng hợp', panelX + 16 * s, py);
+  ctx.fillText(i18n.t('panel.stats_title', { year: '', est: '' }).replace('—', '').trim(), panelX + 16 * s, py);
   py += 20 * s;
 
+  const highestR = displayRecords.find((r) => r[pillar] === max)?.regionId;
+  const lowestR = displayRecords.find((r) => r[pillar] === min)?.regionId;
+
   const stats = [
-    { label: 'Trung bình', value: mean.toFixed(3) },
-    { label: 'Cao nhất', value: `${max.toFixed(3)} (${REGION_META[displayRecords.find((r) => r[pillar] === max)?.regionId ?? '']?.shortName ?? ''})` },
-    { label: 'Thấp nhất', value: `${min.toFixed(3)} (${REGION_META[displayRecords.find((r) => r[pillar] === min)?.regionId ?? '']?.shortName ?? ''})` },
-    { label: 'Khoảng cách', value: gap.toFixed(3) },
+    { label: i18n.t('map.avg'), value: mean.toFixed(3) },
+    { label: i18n.t('map.highest'), value: `${max.toFixed(3)} (${highestR ? i18n.t(`regions.${highestR}.shortName`) : ''})` },
+    { label: i18n.t('map.lowest'), value: `${min.toFixed(3)} (${lowestR ? i18n.t(`regions.${lowestR}.shortName`) : ''})` },
+    { label: i18n.t('map.range'), value: gap.toFixed(3) },
   ];
 
   for (const stat of stats) {
@@ -255,15 +270,15 @@ export async function exportMapPNG(
 
   ctx.fillStyle = accent;
   ctx.font = `bold ${11 * s}px -apple-system, "Segoe UI", sans-serif`;
-  ctx.fillText('Chú giải', panelX + 16 * s, py);
+  ctx.fillText(i18n.t('map.legend_title'), panelX + 16 * s, py);
   py += 18 * s;
 
   const legendItems = [
-    { color: '#00d4aa', label: '> 0.70 — Rất cao' },
-    { color: '#1ea06e', label: '0.60 – 0.70 — Cao' },
-    { color: '#c8b91e', label: '0.50 – 0.60 — Trung bình' },
-    { color: '#c8641e', label: '0.40 – 0.50 — Thấp' },
-    { color: '#8b2323', label: '< 0.40 — Rất thấp' },
+    { color: '#00d4aa', label: `> 0.70 — ${i18n.t('color_labels.very_high')}` },
+    { color: '#1ea06e', label: `0.60 – 0.70 — ${i18n.t('color_labels.high')}` },
+    { color: '#c8b91e', label: `0.50 – 0.60 — ${i18n.t('color_labels.medium')}` },
+    { color: '#c8641e', label: `0.40 – 0.50 — ${i18n.t('color_labels.low')}` },
+    { color: '#8b2323', label: `< 0.40 — ${i18n.t('color_labels.very_low')}` },
   ];
 
   for (const item of legendItems) {
@@ -286,13 +301,14 @@ export async function exportMapPNG(
   ctx.fillStyle = muted;
   ctx.font = `${10 * s}px -apple-system, "Segoe UI", sans-serif`;
   ctx.fillText(
-    'WebGIS DTI+ — Phân hóa không gian phát triển số Việt Nam · Khoa Địa Lý - Đô Thị · ĐHKHXH&NV · ĐHQG TP.HCM',
+    `${i18n.t('header.app_subtitle')} · ${i18n.t('header.department')}`,
     20 * s,
     footerY + 22 * s,
   );
 
-  const dateStr = new Date().toLocaleDateString('vi-VN');
-  ctx.fillText(`Xuất ngày: ${dateStr}`, totalW - 180 * s, footerY + 22 * s);
+  const lng = i18n.language === 'en' ? 'en-US' : 'vi-VN';
+  const dateStr = new Date().toLocaleDateString(lng);
+  ctx.fillText(`${i18n.t('map.exported_date')} ${dateStr}`, totalW - 180 * s, footerY + 22 * s);
 
   // --- Download ---
   const finalFilename = filename ?? `DTI_plus_${pillar}_${year}${selectedRegion ? '_' + selectedRegion : ''}.png`;

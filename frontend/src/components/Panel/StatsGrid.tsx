@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 import { getDTIForYear } from '../../data/dti-data';
 import { REGION_META } from '../../data/region-meta';
@@ -7,6 +8,7 @@ import { DTI_DATA } from '../../data/dti-data';
 
 export default function StatsGrid() {
   const { selectedYear, selectedPillar } = useAppStore();
+  const { t } = useTranslation();
   const yearData = getDTIForYear(selectedYear);
   const stats = computeStats(yearData, selectedPillar);
 
@@ -20,17 +22,19 @@ export default function StatsGrid() {
   const cagr = years > 0 ? ((Math.pow(avgNow / avg2020, 1 / years) - 1) * 100) : 0;
 
   const items = [
-    { label: 'Trung bình quốc gia', value: stats.mean.toFixed(3), mono: true },
-    { label: 'Khoảng cách (max−min)', value: stats.range.toFixed(3), mono: true },
-    { label: 'Hệ số biến thiên (CV)', value: `${stats.cv.toFixed(1)}%`, mono: true },
-    { label: 'Tốc độ tăng TB (CAGR)', value: years > 0 ? `${cagr.toFixed(2)}%/năm` : '—', mono: true },
-    { label: 'Vùng cao nhất', value: REGION_META[stats.highest?.regionId]?.shortName ?? '—', mono: false },
-    { label: 'Vùng thấp nhất', value: REGION_META[stats.lowest?.regionId]?.shortName ?? '—', mono: false },
+    { label: t('panel.national_avg'), value: stats.mean.toFixed(3), mono: true },
+    { label: t('panel.range'), value: stats.range.toFixed(3), mono: true },
+    { label: t('panel.cv'), value: `${stats.cv.toFixed(1)}%`, mono: true },
+    { label: t('panel.cagr'), value: years > 0 ? `${cagr.toFixed(2)}${t('panel.cagr_unit')}` : t('panel.na'), mono: true },
+    { label: t('panel.highest'), value: stats.highest?.regionId ? t(`regions.${stats.highest.regionId}.shortName`) : t('panel.na'), mono: false },
+    { label: t('panel.lowest'), value: stats.lowest?.regionId ? t(`regions.${stats.lowest.regionId}.shortName`) : t('panel.na'), mono: false },
   ];
 
   return (
     <div className="rounded-lg border p-4" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
-      <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>THỐNG KÊ TỔNG HỢP — {selectedYear}{selectedYear === 2025 ? '*' : ''}</p>
+      <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>
+        {t('panel.stats_title', { year: selectedYear, est: selectedYear === 2025 ? '*' : '' })}
+      </p>
       <div className="grid grid-cols-2 gap-2">
         {items.map(({ label, value, mono }) => (
           <div key={label} className="rounded p-2" style={{ background: 'var(--panel)' }}>

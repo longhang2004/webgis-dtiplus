@@ -1,0 +1,132 @@
+{
+  "header": {
+    "app_title": "WebGIS DTI+",
+    "app_subtitle": "WebGIS DTI+ | Phân hóa không gian phát triển số Việt Nam",
+    "department": "Khoa Địa Lý - Đô Thị · ĐHKHXH&NV · ĐHQG TP.HCM · 2025",
+    "data": "Số liệu",
+    "about": "Giới thiệu",
+    "light": "Sáng",
+    "dark": "Tối",
+    "en": "EN",
+    "vi": "VI"
+  },
+  "about": {
+    "title": "Giới thiệu đề tài",
+    "close": "Đóng",
+    "subtitle": "Phân tích sự phân hóa không gian của hạ tầng và năng lực số giữa các vùng kinh tế Việt Nam giai đoạn 2020–2025 bằng WebGIS",
+    "team_label": "Nhóm nghiên cứu",
+    "lead": "Chủ nhiệm: Lê Ngọc Phương Thư (MSSV: 2456080090)",
+    "member": "Thành viên: Hàng Nhựt Long (MSSV: 2211874)",
+    "supervisor": "GVHD: ThS. Lê Khánh Hưng",
+    "institution_label": "Đơn vị",
+    "institution_desc": "Khoa Địa Lý - Đô Thị, Trường Đại học Khoa học Xã hội và Nhân văn, ĐHQG TP.HCM",
+    "dti_label": "Về chỉ số DTI+",
+    "dti_desc": "Chỉ số DTI+ là chỉ số tổng hợp mở rộng được xây dựng từ dữ liệu DTI chính thức của Bộ TT&TT, tổng hợp theo 6 vùng kinh tế bằng phương pháp trung bình gia quyền dân số. Thang đo 0–1, càng cao càng phát triển số.",
+    "note_2025": "* Số liệu năm 2025 là ước tính dựa trên xu hướng giai đoạn 2020–2024."
+  },
+  "regions": {
+    "TDMNPB": {
+      "name": "Trung du và miền núi phía Bắc",
+      "shortName": "TDMNPB"
+    },
+    "DBSH": {
+      "name": "Đồng bằng sông Hồng",
+      "shortName": "ĐBSH"
+    },
+    "BTB": {
+      "name": "Bắc Trung Bộ và duyên hải miền Trung",
+      "shortName": "BTB & DHMT"
+    },
+    "TN": {
+      "name": "Tây Nguyên",
+      "shortName": "Tây Nguyên"
+    },
+    "DNB": {
+      "name": "Đông Nam Bộ",
+      "shortName": "ĐNB"
+    },
+    "DBSCL": {
+      "name": "Đồng bằng sông Cửu Long",
+      "shortName": "ĐBSCL"
+    }
+  },
+  "pillars": {
+    "total": "DTI+ Tổng hợp",
+    "gov": "Chính quyền số",
+    "econ": "Kinh tế số",
+    "soc": "Xã hội số"
+  },
+  "color_labels": {
+    "very_high": "Rất cao",
+    "high": "Cao",
+    "medium": "Trung bình",
+    "low": "Thấp",
+    "very_low": "Rất thấp"
+  },
+  "panel": {
+    "data_panel_title": "Bảng số liệu",
+    "close_data_panel": "Đóng bảng số liệu",
+    "select_region": "Chọn một vùng trên bản đồ",
+    "selected_region": "Vùng được chọn",
+    "rank": "Hạng {{rank}}/6",
+    "yoy": "So với năm trước:",
+    "stats_title": "THỐNG KÊ TỔNG HỢP — {{year}}{{est}}",
+    "national_avg": "Trung bình quốc gia",
+    "range": "Khoảng cách (max−min)",
+    "cv": "Hệ số biến thiên (CV)",
+    "cagr": "Tốc độ tăng TB (CAGR)",
+    "cagr_unit": "%/năm",
+    "highest": "Vùng cao nhất",
+    "lowest": "Vùng thấp nhất",
+    "ranking_title": "XẾP HẠNG CÁC VÙNG",
+    "trend_title": "XU HƯỚNG 2020–2025",
+    "compare_title": "SO SÁNH",
+    "compare_summary_mean": "TB quốc gia",
+    "compare_summary_range": "Khoảng cách",
+    "compare_summary_cv": "Hệ số CV",
+    "compare_region_title": "THAY ĐỔI THEO VÙNG",
+    "convergence_title": "PHÂN TÍCH HỘI TỤ",
+    "convergence_range": "Khoảng cách max−min",
+    "convergence_cv": "Hệ số biến thiên (CV)",
+    "narrowed": "thu hẹp",
+    "widened": "mở rộng",
+    "decreased": "giảm",
+    "increased": "tăng",
+    "points": "điểm",
+    "most_improved": "Vùng cải thiện nhiều nhất:",
+    "least_improved": "Vùng cải thiện ít nhất:",
+    "na": "—"
+  },
+  "controls": {
+    "compare": "So sánh",
+    "export_csv": "Xuất CSV",
+    "export_png": "Xuất PNG",
+    "split_mobile_hint": "So sánh chỉ khả dụng trên màn hình rộng hơn",
+    "year_estimate": "* Năm 2025 là số liệu ước tính",
+    "year": "Năm {{year}}",
+    "play": "Phát",
+    "pause": "Dừng"
+  },
+  "map": {
+    "legend_title": "Chú giải",
+    "missing_data": "Không có dữ liệu",
+    "export": "Lưu hình ảnh",
+    "region_col": "Vùng",
+    "region_name_col": "Tên vùng",
+    "year_col": "Năm",
+    "estimate_col": "Ước tính",
+    "yes": "Có",
+    "no": "Không",
+    "region_prefix": "Vùng: ",
+    "region_data_title": "Số liệu vùng kinh tế",
+    "col_total": "Tổng",
+    "col_gov": "CQS",
+    "col_econ": "KTS",
+    "col_soc": "XHS",
+    "avg": "Trung bình",
+    "highest": "Cao nhất",
+    "lowest": "Thấp nhất",
+    "range": "Khoảng cách",
+    "exported_date": "Xuất ngày:"
+  }
+}

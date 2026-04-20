@@ -1,0 +1,132 @@
+{
+  "header": {
+    "app_title": "WebGIS DTI+",
+    "app_subtitle": "WebGIS DTI+ | Spatial Differentiation of Digital Development in Vietnam",
+    "department": "Department of Urban Geography · USSH · VNU-HCM · 2025",
+    "data": "Data",
+    "about": "About",
+    "light": "Light",
+    "dark": "Dark",
+    "en": "EN",
+    "vi": "VI"
+  },
+  "about": {
+    "title": "About the Project",
+    "close": "Close",
+    "subtitle": "Analyzing the spatial differentiation of digital infrastructure and capability among economic regions of Vietnam in 2020–2025 using WebGIS",
+    "team_label": "Research Team",
+    "lead": "Lead: Lê Ngọc Phương Thư (ID: 2456080090)",
+    "member": "Member: Hàng Nhựt Long (ID: 2211874)",
+    "supervisor": "Supervisor: MSc. Lê Khánh Hưng",
+    "institution_label": "Institution",
+    "institution_desc": "Department of Urban Geography, University of Social Sciences and Humanities, VNU-HCM",
+    "dti_label": "About DTI+ Index",
+    "dti_desc": "The DTI+ index is an expanded composite index built from official DTI data by the Ministry of Information and Communications, aggregated across 6 economic regions using population-weighted averages. Scale 0–1, higher means more digital development.",
+    "note_2025": "* 2025 data is estimated based on the 2020–2024 trend."
+  },
+  "regions": {
+    "TDMNPB": {
+      "name": "Northern Midlands and Mountains",
+      "shortName": "TDMNPB"
+    },
+    "DBSH": {
+      "name": "Red River Delta",
+      "shortName": "ĐBSH"
+    },
+    "BTB": {
+      "name": "North Central and Central Coast",
+      "shortName": "BTB & DHMT"
+    },
+    "TN": {
+      "name": "Central Highlands",
+      "shortName": "Tây Nguyên"
+    },
+    "DNB": {
+      "name": "Southeast",
+      "shortName": "ĐNB"
+    },
+    "DBSCL": {
+      "name": "Mekong River Delta",
+      "shortName": "ĐBSCL"
+    }
+  },
+  "pillars": {
+    "total": "DTI+ Composite",
+    "gov": "Digital Government",
+    "econ": "Digital Economy",
+    "soc": "Digital Society"
+  },
+  "color_labels": {
+    "very_high": "Very High",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "very_low": "Very Low"
+  },
+  "panel": {
+    "data_panel_title": "Data Panel",
+    "close_data_panel": "Close Data Panel",
+    "select_region": "Select a region on map",
+    "selected_region": "Selected region",
+    "rank": "Rank {{rank}}/6",
+    "yoy": "Compared to last year:",
+    "stats_title": "SUMMARY STATISTICS — {{year}}{{est}}",
+    "national_avg": "National Average",
+    "range": "Range (max−min)",
+    "cv": "Coefficient of Variation (CV)",
+    "cagr": "Average Growth Rate (CAGR)",
+    "cagr_unit": "%/year",
+    "highest": "Highest Region",
+    "lowest": "Lowest Region",
+    "ranking_title": "REGIONAL RANKINGS",
+    "trend_title": "TRENDS 2020–2025",
+    "compare_title": "COMPARISON",
+    "compare_summary_mean": "National Avg",
+    "compare_summary_range": "Range Gap",
+    "compare_summary_cv": "CV Index",
+    "compare_region_title": "CHANGES BY REGION",
+    "convergence_title": "CONVERGENCE ANALYSIS",
+    "convergence_range": "Range (max−min)",
+    "convergence_cv": "CV Index",
+    "narrowed": "narrowed",
+    "widened": "widened",
+    "decreased": "decreased",
+    "increased": "increased",
+    "points": "points",
+    "most_improved": "Most improved region:",
+    "least_improved": "Least improved region:",
+    "na": "—"
+  },
+  "controls": {
+    "compare": "Compare",
+    "export_csv": "Export CSV",
+    "export_png": "Export PNG",
+    "split_mobile_hint": "Comparison is only available on wider screens",
+    "year_estimate": "* 2025 is estimated data",
+    "year": "Year {{year}}",
+    "play": "Play",
+    "pause": "Pause"
+  },
+  "map": {
+    "legend_title": "Legend",
+    "missing_data": "No data",
+    "export": "Save Image",
+    "region_col": "Region",
+    "region_name_col": "Region Name",
+    "year_col": "Year",
+    "estimate_col": "Estimate",
+    "yes": "Yes",
+    "no": "No",
+    "region_prefix": "Region: ",
+    "region_data_title": "Regional Data Data",
+    "col_total": "Total",
+    "col_gov": "GOV",
+    "col_econ": "ECO",
+    "col_soc": "SOC",
+    "avg": "Average",
+    "highest": "Highest",
+    "lowest": "Lowest",
+    "range": "Range",
+    "exported_date": "Exported:"
+  }
+}

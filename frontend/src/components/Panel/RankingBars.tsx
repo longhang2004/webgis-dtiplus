@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 import { getDTIForYear } from '../../data/dti-data';
 import { REGION_META } from '../../data/region-meta';
@@ -8,13 +9,14 @@ import { RegionId } from '../../types';
 
 export default function RankingBars() {
   const { selectedYear, selectedPillar, selectedRegion, setRegion } = useAppStore();
+  const { t } = useTranslation();
   const yearData = getDTIForYear(selectedYear);
   const ranked = getRanking(yearData, selectedPillar);
   const maxVal = ranked[0]?.[selectedPillar] ?? 1;
 
   return (
     <div className="rounded-lg border p-4 space-y-2" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
-      <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>XẾP HẠNG CÁC VÙNG</p>
+      <p className="text-xs font-semibold mb-3" style={{ color: 'var(--muted)' }}>{t('panel.ranking_title')}</p>
       {ranked.map((record, idx) => {
         const meta = REGION_META[record.regionId];
         const val = record[selectedPillar];
@@ -30,7 +32,7 @@ export default function RankingBars() {
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs w-4 text-right" style={{ color: 'var(--muted)' }}>{idx + 1}</span>
               <span className="text-xs flex-1 truncate" style={{ color: isSelected ? 'var(--accent)' : 'var(--text)' }}>
-                {meta?.shortName ?? record.regionId}
+                {meta?.id ? t(`regions.${meta.id}.shortName`) : record.regionId}
               </span>
               <span className="text-xs font-mono" style={{ color }}>{val.toFixed(3)}</span>
             </div>

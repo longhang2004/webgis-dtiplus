@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from './Header';
 import AboutModal from './AboutModal';
 import MapSection from '../Map/MapSection';
@@ -9,6 +10,7 @@ import { useAppStore } from '../../store/appStore';
 
 export default function AppLayout() {
   useUrlState();
+  const { t } = useTranslation();
   const splitMode = useAppStore((s) => s.splitMode);
   const darkMode = useAppStore((s) => s.darkMode);
 
@@ -46,7 +48,7 @@ export default function AppLayout() {
             type="button"
             className="absolute inset-0 w-full h-full border-0 cursor-default"
             style={{ background: 'rgba(7, 14, 28, 0.72)' }}
-            aria-label="Đóng bảng số liệu"
+            aria-label={t('panel.close_data_panel')}
             onClick={() => setMobileDataPanelOpen(false)}
           />
           <div
@@ -62,14 +64,14 @@ export default function AppLayout() {
               style={{ borderColor: 'var(--border)' }}
             >
               <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
-                Bảng số liệu
+                {t('panel.data_panel_title')}
               </span>
               <button
                 type="button"
                 onClick={() => setMobileDataPanelOpen(false)}
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-xl leading-none hover:opacity-80"
                 style={{ color: 'var(--muted)', background: 'rgba(26, 45, 77, 0.35)' }}
-                aria-label="Đóng"
+                aria-label={t('about.close')}
               >
                 ×
               </button>
