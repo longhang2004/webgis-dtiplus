@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://webgis-dtiplus.vercel.app/sitemap.xml

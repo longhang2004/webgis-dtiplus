@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="WebGIS DTI+">
+  <rect width="180" height="180" rx="38" fill="#070e1c"/>
+  <path d="M53 34h74l20 28-11 84H44L33 62l20-28Z" fill="#0c1628" stroke="#00d4aa" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M66 51h31L86 82l26 3-46 50 15-39-24-4 9-41Z" fill="#00d4aa"/>
+  <path d="M118 42l21 23-9 67" fill="none" stroke="#0ea5e9" stroke-width="9" stroke-linecap="round"/>
+</svg>
