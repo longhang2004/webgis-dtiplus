@@ -72,6 +72,19 @@ body {
   margin: 12px 16px !important;
 }
 
+.webgis-region-popup {
+  width: 248px;
+  max-width: 248px;
+  overflow: hidden;
+  color: var(--text);
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+.webgis-region-popup svg {
+  display: block;
+  max-width: 100%;
+}
+
 .leaflet-tooltip {
   background: var(--panel) !important;
   border: 1px solid var(--border) !important;

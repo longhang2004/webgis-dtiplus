@@ -101,6 +101,7 @@
     "compare": "So sánh",
     "export_csv": "Xuất CSV",
     "export_png": "Xuất PNG",
+    "resize_split": "Kéo để đổi kích thước so sánh",
     "split_mobile_hint": "So sánh chỉ khả dụng trên màn hình rộng hơn",
     "year_estimate": "* Năm 2025 là số liệu ước tính",
     "year": "Năm {{year}}",

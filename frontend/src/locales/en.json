@@ -101,6 +101,7 @@
     "compare": "Compare",
     "export_csv": "Export CSV",
     "export_png": "Export PNG",
+    "resize_split": "Drag to resize comparison",
     "split_mobile_hint": "Comparison is only available on wider screens",
     "year_estimate": "* 2025 is estimated data",
     "year": "Year {{year}}",

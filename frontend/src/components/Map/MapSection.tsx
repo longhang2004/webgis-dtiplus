@@ -1,3 +1,8 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
 import MapContainer from './MapContainer';
@@ -42,15 +47,57 @@ export default function MapSection() {
     selectedPillar, selectedRegion, setRegion, setYear,
   } = useAppStore();
   const { t } = useTranslation();
+  const splitContainerRef = useRef<HTMLDivElement | null>(null);
+  const [splitRatio, setSplitRatio] = useState(50);
+
+  const updateSplitRatio = useCallback((clientX: number) => {
+    const rect = splitContainerRef.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0) return;
+    const next = ((clientX - rect.left) / rect.width) * 100;
+    setSplitRatio(Math.min(76, Math.max(24, next)));
+  }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(new Event('resize'));
+  }, [splitRatio]);
+
+  const handleDividerPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    updateSplitRatio(event.clientX);
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      updateSplitRatio(moveEvent.clientX);
+    };
+    const handlePointerUp = () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.dispatchEvent(new Event('resize'));
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+  }, [updateSplitRatio]);
+
+  const handleDividerKeyDown = useCallback((event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+
+    setSplitRatio((current) => {
+      if (event.key === 'Home') return 24;
+      if (event.key === 'End') return 76;
+      const delta = event.key === 'ArrowLeft' ? -5 : 5;
+      return Math.min(76, Math.max(24, current + delta));
+    });
+  }, []);
 
   if (splitMode) {
     return (
       <>
         {/* Tablet+ : side-by-side maps */}
-        <div className="hidden md:flex h-full w-full min-h-0 flex-row">
+        <div ref={splitContainerRef} className="relative hidden md:flex h-full w-full min-h-0 flex-row">
           <div
-            className="relative flex-1 border-r"
-            style={{ borderColor: 'var(--border)' }}
+            className="relative h-full min-w-0 overflow-hidden"
+            style={{ width: `${splitRatio}%` }}
           >
             <YearBadge year={splitYear} onChange={setSplitYear} />
             <MapContainer
@@ -60,7 +107,29 @@ export default function MapSection() {
               onRegionClick={setRegion}
             />
           </div>
-          <div className="relative flex-1">
+          <button
+            type="button"
+            className="absolute top-0 bottom-0 z-20 flex w-4 -translate-x-1/2 cursor-col-resize items-center justify-center touch-none"
+            style={{ left: `${splitRatio}%` }}
+            aria-label={t('controls.resize_split')}
+            aria-orientation="vertical"
+            aria-valuemax={76}
+            aria-valuemin={24}
+            aria-valuenow={Math.round(splitRatio)}
+            role="separator"
+            onKeyDown={handleDividerKeyDown}
+            onPointerDown={handleDividerPointerDown}
+          >
+            <span
+              className="h-full w-px"
+              style={{ background: 'var(--border)', boxShadow: '0 0 0 1px rgba(255,255,255,0.28)' }}
+            />
+            <span
+              className="absolute h-14 w-1.5 rounded-full"
+              style={{ background: 'var(--accent)' }}
+            />
+          </button>
+          <div className="relative h-full min-w-0 flex-1 overflow-hidden">
             <YearBadge year={selectedYear} onChange={setYear} />
             <MapContainer
               year={selectedYear}

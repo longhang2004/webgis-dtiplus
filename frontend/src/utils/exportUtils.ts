@@ -5,6 +5,7 @@ import { getDTIColor, getDTIColorLabel } from './colorScale';
 import { getDTIForYear } from '../data/dti-data';
 import { getMapInstance } from '../store/appStore';
 import i18n from '../i18n';
+import regionsGeoJSON from '../data/geojson/vietnam-regions.geojson';
 
 export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): void {
   const header = [
@@ -15,7 +16,6 @@ export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): voi
     i18n.t('pillars.gov'), 
     i18n.t('pillars.econ'), 
     i18n.t('pillars.soc'), 
-    i18n.t('map.estimate_col')
   ];
   const rows = records.map((r) => [
     r.regionId,
@@ -25,7 +25,6 @@ export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): voi
     r.gov,
     r.econ,
     r.soc,
-    r.isEstimate ? i18n.t('map.yes') : i18n.t('map.no'),
   ]);
   const csv = [header, ...rows].map((row) => row.join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -39,7 +38,7 @@ export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): voi
 
 /* ─── PNG Export ─────────────────────────────────────────────────── */
 
-const VIETNAM_BOUNDS: [[number, number], [number, number]] = [[8.2, 101.5], [23.5, 110.5]];
+const VIETNAM_BOUNDS = L.geoJSON(regionsGeoJSON as GeoJSON.FeatureCollection).getBounds();
 
 /** Wait for the map to settle and tiles to render */
 function waitForMap(_map: L.Map, ms = 1200): Promise<void> {
@@ -80,7 +79,7 @@ export async function exportMapPNG(
   if (map) {
     savedCenter = map.getCenter();
     savedZoom = map.getZoom();
-    map.fitBounds(VIETNAM_BOUNDS, { animate: false, padding: [20, 20] });
+    map.fitBounds(VIETNAM_BOUNDS, { animate: false, padding: [2, 2] });
     await waitForMap(map, 1000);
   }
 
