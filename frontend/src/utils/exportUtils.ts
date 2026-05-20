@@ -1,9 +1,7 @@
-import L from 'leaflet';
 import { DTIRecord, Pillar, Year, RegionId } from '../types';
 import { REGION_META } from '../data/region-meta';
 import { getDTIColor, getDTIColorLabel } from './colorScale';
 import { getDTIForYear } from '../data/dti-data';
-import { getMapInstance } from '../store/appStore';
 import i18n from '../i18n';
 import regionsGeoJSON from '../data/geojson/vietnam-regions.geojson';
 
@@ -38,11 +36,136 @@ export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): voi
 
 /* ─── PNG Export ─────────────────────────────────────────────────── */
 
-const VIETNAM_BOUNDS = L.geoJSON(regionsGeoJSON as GeoJSON.FeatureCollection).getBounds();
+type Coordinate = [number, number];
+type Bounds = { minLng: number; minLat: number; maxLng: number; maxLat: number };
 
-/** Wait for the map to settle and tiles to render */
-function waitForMap(_map: L.Map, ms = 1200): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function extendBounds(bounds: Bounds, coords: GeoJSON.Position | GeoJSON.Position[][] | GeoJSON.Position[][][]): void {
+  if (typeof coords[0] === 'number') {
+    const [lng, lat] = coords as GeoJSON.Position;
+    bounds.minLng = Math.min(bounds.minLng, lng);
+    bounds.maxLng = Math.max(bounds.maxLng, lng);
+    bounds.minLat = Math.min(bounds.minLat, lat);
+    bounds.maxLat = Math.max(bounds.maxLat, lat);
+    return;
+  }
+
+  (coords as Array<GeoJSON.Position | GeoJSON.Position[][]>).forEach((child) => {
+    extendBounds(bounds, child as GeoJSON.Position | GeoJSON.Position[][] | GeoJSON.Position[][][]);
+  });
+}
+
+function getVietnamBounds(): Bounds {
+  const bounds: Bounds = {
+    minLng: Infinity,
+    minLat: Infinity,
+    maxLng: -Infinity,
+    maxLat: -Infinity,
+  };
+
+  (regionsGeoJSON as GeoJSON.FeatureCollection).features.forEach((feature) => {
+    if (feature.geometry?.type === 'MultiPolygon' || feature.geometry?.type === 'Polygon') {
+      extendBounds(bounds, feature.geometry.coordinates);
+    }
+  });
+
+  return bounds;
+}
+
+function getFeaturePolygons(feature: GeoJSON.Feature): Coordinate[][][] {
+  if (feature.geometry?.type === 'Polygon') {
+    return [feature.geometry.coordinates as Coordinate[][]];
+  }
+  if (feature.geometry?.type === 'MultiPolygon') {
+    return feature.geometry.coordinates as Coordinate[][][];
+  }
+  return [];
+}
+
+function drawVietnamMap(
+  ctx: CanvasRenderingContext2D,
+  rect: { x: number; y: number; width: number; height: number },
+  records: DTIRecord[],
+  pillar: Pillar,
+  selectedRegion: RegionId | null,
+  colors: { mapBg: string; stroke: string; accent: string },
+): void {
+  const bounds = getVietnamBounds();
+  const lngSpan = bounds.maxLng - bounds.minLng;
+  const latSpan = bounds.maxLat - bounds.minLat;
+  const padding = Math.min(rect.width * 0.08, rect.height * 0.045, 72);
+  const scale = Math.min(
+    (rect.width - padding * 2) / lngSpan,
+    (rect.height - padding * 2) / latSpan,
+  );
+  const mapWidth = lngSpan * scale;
+  const mapHeight = latSpan * scale;
+  const offsetX = rect.x + (rect.width - mapWidth) / 2;
+  const offsetY = rect.y + (rect.height - mapHeight) / 2;
+
+  const project = ([lng, lat]: Coordinate) => ({
+    x: offsetX + (lng - bounds.minLng) * scale,
+    y: offsetY + (bounds.maxLat - lat) * scale,
+  });
+
+  ctx.save();
+  ctx.fillStyle = colors.mapBg;
+  ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  (regionsGeoJSON as GeoJSON.FeatureCollection).features.forEach((feature) => {
+    const regionId = feature.properties?.region_id as RegionId | undefined;
+    if (!regionId) return;
+
+    const record = records.find((item) => item.regionId === regionId);
+    const value = record?.[pillar] ?? 0;
+    const isSelected = regionId === selectedRegion;
+
+    ctx.beginPath();
+    getFeaturePolygons(feature).forEach((polygon) => {
+      polygon.forEach((ring) => {
+        ring.forEach((point, index) => {
+          const projected = project(point);
+          if (index === 0) ctx.moveTo(projected.x, projected.y);
+          else ctx.lineTo(projected.x, projected.y);
+        });
+        ctx.closePath();
+      });
+    });
+
+    ctx.fillStyle = getDTIColor(value);
+    ctx.globalAlpha = isSelected ? 1 : 0.94;
+    ctx.fill('evenodd');
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = colors.stroke;
+    ctx.lineWidth = isSelected ? 3.5 : 2.4;
+    ctx.stroke();
+  });
+
+  if (selectedRegion) {
+    const selectedFeature = (regionsGeoJSON as GeoJSON.FeatureCollection).features.find(
+      (feature) => feature.properties?.region_id === selectedRegion,
+    );
+
+    if (selectedFeature) {
+      ctx.beginPath();
+      getFeaturePolygons(selectedFeature).forEach((polygon) => {
+        polygon.forEach((ring) => {
+          ring.forEach((point, index) => {
+            const projected = project(point);
+            if (index === 0) ctx.moveTo(projected.x, projected.y);
+            else ctx.lineTo(projected.x, projected.y);
+          });
+          ctx.closePath();
+        });
+      });
+      ctx.strokeStyle = colors.accent;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
 }
 
 interface ExportOptions {
@@ -57,7 +180,6 @@ export async function exportMapPNG(
   options: ExportOptions,
   filename?: string,
 ): Promise<void> {
-  const html2canvas = (await import('html2canvas')).default;
   const mapElement = document.getElementById(elementId);
   if (!mapElement) return;
 
@@ -71,35 +193,6 @@ export async function exportMapPNG(
   const text = darkMode ? '#e2eaff' : '#1a2436';
   const muted = darkMode ? '#6b80a8' : '#5c6b82';
 
-  // --- Fit map to Vietnam bounds ---
-  const map = getMapInstance();
-  let savedCenter: L.LatLng | null = null;
-  let savedZoom: number | null = null;
-
-  if (map) {
-    savedCenter = map.getCenter();
-    savedZoom = map.getZoom();
-    map.fitBounds(VIETNAM_BOUNDS, { animate: false, padding: [2, 2] });
-    await waitForMap(map, 1000);
-  }
-
-  // --- Capture map ---
-  let mapCanvas: HTMLCanvasElement;
-  try {
-    mapCanvas = await html2canvas(mapElement, {
-      backgroundColor: bg,
-      useCORS: true,
-      scale: 2,
-      logging: false,
-      removeContainer: true,
-    });
-  } finally {
-    // Restore original view
-    if (map && savedCenter && savedZoom !== null) {
-      map.setView(savedCenter, savedZoom, { animate: false });
-    }
-  }
-
   // --- Prepare data ---
   const records = getDTIForYear(year);
   const sortedRecords = [...records].sort((a, b) => b[pillar] - a[pillar]);
@@ -112,8 +205,9 @@ export async function exportMapPNG(
   const PANEL_WIDTH = 420;
   const HEADER_H = 64;
   const FOOTER_H = 36;
-  const mapW = mapCanvas.width;
-  const mapH = mapCanvas.height;
+  const mapRect = mapElement.getBoundingClientRect();
+  const mapW = Math.max(1, Math.round(mapRect.width * 2));
+  const mapH = Math.max(1, Math.round(mapRect.height * 2));
   const totalW = mapW + PANEL_WIDTH * 2; // Scale panel to match map DPI (scale: 2)
   const totalH = mapH + (HEADER_H + FOOTER_H) * 2;
 
@@ -152,7 +246,14 @@ export async function exportMapPNG(
 
   // --- Map ---
   const mapY = HEADER_H * s;
-  ctx.drawImage(mapCanvas, 0, mapY, mapW, mapH);
+  drawVietnamMap(
+    ctx,
+    { x: 0, y: mapY, width: mapW, height: mapH },
+    records,
+    pillar,
+    selectedRegion,
+    { mapBg: bg, stroke: '#ffffff', accent },
+  );
 
   // --- Side panel ---
   const panelX = mapW;
