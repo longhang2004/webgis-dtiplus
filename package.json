@@ -1,0 +1,16 @@
+{
+  "name": "webgis-dtiplus",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "description": "WebGIS DTI+ - Phân hóa không gian phát triển số Việt Nam",
+  "scripts": {
+    "dev:frontend": "pnpm --filter webgis-dtiplus-frontend dev",
+    "dev:backend": "pnpm --filter webgis-dtiplus-backend dev",
+    "build:frontend": "pnpm --filter webgis-dtiplus-frontend build",
+    "build:backend": "pnpm --filter webgis-dtiplus-backend build",
+    "db:up": "docker-compose up -d postgres",
+    "db:migrate": "pnpm --filter webgis-dtiplus-backend migrate",
+    "db:seed": "pnpm --filter webgis-dtiplus-backend seed"
+  }
+}

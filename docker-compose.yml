@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   postgres:
-    image: postgis/postgis:15-3.3
+    image: postgis/postgis:14-3.3
     environment:
       POSTGRES_DB: webgis_dti
       POSTGRES_USER: postgres
@@ -10,16 +10,23 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: ./backend
     environment:
       DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/webgis_dti
       PORT: 3001
+      JWT_SECRET: webgis-dti-secret-key-2025
     ports:
       - "3001:3001"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
 volumes:
   pgdata:
