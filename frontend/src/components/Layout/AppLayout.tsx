@@ -10,7 +10,7 @@ import { useAppStore } from '../../store/appStore';
 
 export default function AppLayout() {
   useUrlState();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const splitMode = useAppStore((s) => s.splitMode);
   const darkMode = useAppStore((s) => s.darkMode);
 
@@ -20,6 +20,11 @@ export default function AppLayout() {
     root.classList.remove('dark', 'light');
     root.classList.add(darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  // Sync document language on <html>
+  useEffect(() => {
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
   const mobileDataPanelOpen = useAppStore((s) => s.mobileDataPanelOpen);
   const setMobileDataPanelOpen = useAppStore((s) => s.setMobileDataPanelOpen);
   const aboutModalOpen = useAppStore((s) => s.aboutModalOpen);

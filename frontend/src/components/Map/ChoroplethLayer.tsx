@@ -131,7 +131,8 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
         (layer as L.Path).bindTooltip(
           () => {
             const value = getDTIValue(regionId, propsRef.current.year, propsRef.current.pillar);
-            return `<strong style="color:#e2eaff">${meta?.name ?? regionId}</strong><br/>DTI+: <span style="color:#00d4aa;font-family:monospace;font-weight:600">${value.toFixed(3)}</span>`;
+            const regionName = i18n.t(`regions.${regionId}.name`, { defaultValue: meta?.name ?? regionId });
+            return `<strong style="color:#e2eaff">${regionName}</strong><br/>DTI+: <span style="color:#00d4aa;font-family:monospace;font-weight:600">${value.toFixed(3)}</span>`;
           },
           { sticky: true }
         );

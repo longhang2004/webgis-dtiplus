@@ -27,27 +27,27 @@
   "regions": {
     "TDMNPB": {
       "name": "Northern Midlands and Mountains",
-      "shortName": "TDMNPB"
+      "shortName": "NMM"
     },
     "DBSH": {
       "name": "Red River Delta",
-      "shortName": "ĐBSH"
+      "shortName": "RRD"
     },
     "BTB": {
       "name": "North Central and Central Coast",
-      "shortName": "BTB & DHMT"
+      "shortName": "NCC"
     },
     "TN": {
       "name": "Central Highlands",
-      "shortName": "Tây Nguyên"
+      "shortName": "CH"
     },
     "DNB": {
       "name": "Southeast",
-      "shortName": "ĐNB"
+      "shortName": "SE"
     },
     "DBSCL": {
       "name": "Mekong River Delta",
-      "shortName": "ĐBSCL"
+      "shortName": "MRD"
     }
   },
   "pillars": {
