@@ -105,6 +105,7 @@ export default function MapSection() {
               pillar={selectedPillar}
               selectedRegion={selectedRegion}
               onRegionClick={setRegion}
+              showIslandInset={false}
             />
           </div>
           <button
@@ -136,6 +137,7 @@ export default function MapSection() {
               pillar={selectedPillar}
               selectedRegion={selectedRegion}
               onRegionClick={setRegion}
+              showIslandInset={false}
             />
           </div>
         </div>

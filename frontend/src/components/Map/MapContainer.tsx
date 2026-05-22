@@ -11,6 +11,7 @@ interface Props {
   pillar: Pillar;
   selectedRegion: RegionId | null;
   onRegionClick: (id: RegionId | null) => void;
+  showIslandInset?: boolean;
 }
 
 /** Register Leaflet map instance globally for export */
@@ -23,7 +24,7 @@ function MapRegistrar() {
   return null;
 }
 
-export default function MapContainer({ year, pillar, selectedRegion, onRegionClick }: Props) {
+export default function MapContainer({ year, pillar, selectedRegion, onRegionClick, showIslandInset = true }: Props) {
   return (
     <LeafletMap
       center={[16.0, 107.5]}
@@ -48,7 +49,7 @@ export default function MapContainer({ year, pillar, selectedRegion, onRegionCli
         onRegionClick={onRegionClick}
       />
       <MapLegend pillar={pillar} />
-      <IslandInset />
+      {showIslandInset && <IslandInset />}
     </LeafletMap>
   );
 }
