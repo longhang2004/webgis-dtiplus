@@ -1,4 +1,3 @@
-import L from 'leaflet';
 import { DTIRecord, Pillar, Year, RegionId } from '../types';
 import { REGION_META } from '../data/region-meta';
 import { getDTIColor, getDTIColorLabel } from './colorScale';
@@ -37,107 +36,160 @@ export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): voi
 
 /* ─── PNG Export ─────────────────────────────────────────────────── */
 
-const VIETNAM_LEAFLET_BOUNDS = L.geoJSON(regionsGeoJSON as GeoJSON.FeatureCollection).getBounds();
+const TILE_SIZE = 256;
+type Point = { x: number; y: number };
+type GeoBounds = { minLng: number; minLat: number; maxLng: number; maxLat: number };
 
-function waitForMap(ms = 1000): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function project(lng: number, lat: number, zoom: number): Point {
+  const sinLat = Math.sin((lat * Math.PI) / 180);
+  const worldSize = TILE_SIZE * 2 ** zoom;
+  return {
+    x: ((lng + 180) / 360) * worldSize,
+    y: (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * worldSize,
+  };
 }
 
-function waitForTileLayer(tileLayer: L.TileLayer, timeoutMs = 2200): Promise<void> {
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      tileLayer.off('load', finish);
-      resolve();
-    };
+function extendGeoBounds(bounds: GeoBounds, coords: GeoJSON.Position | GeoJSON.Position[][] | GeoJSON.Position[][][]): void {
+  if (typeof coords[0] === 'number') {
+    const [lng, lat] = coords as GeoJSON.Position;
+    bounds.minLng = Math.min(bounds.minLng, lng);
+    bounds.maxLng = Math.max(bounds.maxLng, lng);
+    bounds.minLat = Math.min(bounds.minLat, lat);
+    bounds.maxLat = Math.max(bounds.maxLat, lat);
+    return;
+  }
 
-    tileLayer.on('load', finish);
-    window.setTimeout(finish, timeoutMs);
+  (coords as Array<GeoJSON.Position | GeoJSON.Position[][]>).forEach((child) => {
+    extendGeoBounds(bounds, child as GeoJSON.Position | GeoJSON.Position[][] | GeoJSON.Position[][][]);
   });
 }
 
-function getMapContentBounds(canvas: HTMLCanvasElement): { minX: number; minY: number; maxX: number; maxY: number } | null {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
+function getVietnamGeoBounds(): GeoBounds {
+  const bounds: GeoBounds = {
+    minLng: Infinity,
+    minLat: Infinity,
+    maxLng: -Infinity,
+    maxLat: -Infinity,
+  };
 
-  const { width, height } = canvas;
-  const data = ctx.getImageData(0, 0, width, height).data;
-  let minX = width;
-  let minY = height;
-  let maxX = -1;
-  let maxY = -1;
+  (regionsGeoJSON as GeoJSON.FeatureCollection).features.forEach((feature) => {
+    if (feature.geometry?.type === 'MultiPolygon' || feature.geometry?.type === 'Polygon') {
+      extendGeoBounds(bounds, feature.geometry.coordinates);
+    }
+  });
 
-  for (let y = 0; y < height; y += 2) {
-    for (let x = 0; x < width; x += 2) {
-      const index = (y * width + x) * 4;
-      const r = data[index];
-      const g = data[index + 1];
-      const b = data[index + 2];
-      const a = data[index + 3];
-      if (a < 200) continue;
+  return bounds;
+}
 
-      const isChoroplethFill =
-        (g > 90 && r > 80 && b < 95)
-        || (r > 150 && g > 70 && b < 85)
-        || (g > 125 && b < 170 && r < 95);
-      const isWhiteBoundary = r > 210 && g > 210 && b > 210;
+function getFeaturePolygons(feature: GeoJSON.Feature): GeoJSON.Position[][][] {
+  if (feature.geometry?.type === 'Polygon') {
+    return [feature.geometry.coordinates as GeoJSON.Position[][]];
+  }
+  if (feature.geometry?.type === 'MultiPolygon') {
+    return feature.geometry.coordinates as GeoJSON.Position[][][];
+  }
+  return [];
+}
 
-      if (isChoroplethFill || isWhiteBoundary) {
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x);
-        maxY = Math.max(maxY, y);
-      }
+function getExportViewport(width: number, height: number): { zoom: number; center: Point } {
+  const bounds = getVietnamGeoBounds();
+  const sw0 = project(bounds.minLng, bounds.minLat, 0);
+  const ne0 = project(bounds.maxLng, bounds.maxLat, 0);
+  const boundsWidth0 = Math.abs(ne0.x - sw0.x);
+  const boundsHeight0 = Math.abs(sw0.y - ne0.y);
+  const paddingX = width * 0.30;
+  const paddingY = height * 0.08;
+  const zoom = Math.min(
+    Math.log2((width - paddingX * 2) / boundsWidth0),
+    Math.log2((height - paddingY * 2) / boundsHeight0),
+  );
+
+  const sw = project(bounds.minLng, bounds.minLat, zoom);
+  const ne = project(bounds.maxLng, bounds.maxLat, zoom);
+  return {
+    zoom,
+    center: {
+      x: (sw.x + ne.x) / 2,
+      y: (sw.y + ne.y) / 2,
+    },
+  };
+}
+
+function loadTile(url: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () => resolve(image);
+    image.onerror = () => resolve(null);
+    image.src = url;
+  });
+}
+
+async function drawOSMTiles(ctx: CanvasRenderingContext2D, width: number, height: number, zoom: number, center: Point): Promise<void> {
+  const tileZoom = Math.max(0, Math.floor(zoom));
+  const scale = 2 ** (zoom - tileZoom);
+  const tileDisplaySize = TILE_SIZE * scale;
+  const centerAtTileZoom = {
+    x: center.x / 2 ** (zoom - tileZoom),
+    y: center.y / 2 ** (zoom - tileZoom),
+  };
+  const topLeft = {
+    x: centerAtTileZoom.x - width / (2 * scale),
+    y: centerAtTileZoom.y - height / (2 * scale),
+  };
+  const minTileX = Math.floor(topLeft.x / TILE_SIZE) - 1;
+  const maxTileX = Math.ceil((topLeft.x + width / scale) / TILE_SIZE) + 1;
+  const minTileY = Math.floor(topLeft.y / TILE_SIZE) - 1;
+  const maxTileY = Math.ceil((topLeft.y + height / scale) / TILE_SIZE) + 1;
+  const tileCount = 2 ** tileZoom;
+  const tasks: Promise<void>[] = [];
+
+  for (let tileX = minTileX; tileX <= maxTileX; tileX += 1) {
+    for (let tileY = minTileY; tileY <= maxTileY; tileY += 1) {
+      if (tileY < 0 || tileY >= tileCount) continue;
+      const wrappedX = ((tileX % tileCount) + tileCount) % tileCount;
+      const url = `https://tile.openstreetmap.org/${tileZoom}/${wrappedX}/${tileY}.png`;
+      tasks.push(loadTile(url).then((image) => {
+        if (!image) return;
+        const x = (tileX * TILE_SIZE - topLeft.x) * scale;
+        const y = (tileY * TILE_SIZE - topLeft.y) * scale;
+        ctx.drawImage(image, x, y, tileDisplaySize, tileDisplaySize);
+      }));
     }
   }
 
-  if (maxX < 0 || maxY < 0) return null;
-  return { minX, minY, maxX, maxY };
+  await Promise.all(tasks);
 }
 
-function cropMapToContent(canvas: HTMLCanvasElement, targetWidth: number, targetHeight: number, bg: string): HTMLCanvasElement {
-  if (canvas.width <= targetWidth && canvas.height <= targetHeight) return canvas;
+function drawRegionPath(
+  ctx: CanvasRenderingContext2D,
+  feature: GeoJSON.Feature,
+  zoom: number,
+  center: Point,
+  width: number,
+  height: number,
+): void {
+  const toCanvas = ([lng, lat]: GeoJSON.Position): Point => {
+    const projected = project(lng, lat, zoom);
+    return {
+      x: width / 2 + (projected.x - center.x),
+      y: height / 2 + (projected.y - center.y),
+    };
+  };
 
-  const target = document.createElement('canvas');
-  target.width = targetWidth;
-  target.height = targetHeight;
-  const ctx = target.getContext('2d')!;
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, targetWidth, targetHeight);
-
-  const bounds = getMapContentBounds(canvas);
-  const cropX = bounds
-    ? Math.min(
-      Math.max(((bounds.minX + bounds.maxX) / 2) - targetWidth / 2, 0),
-      Math.max(canvas.width - targetWidth, 0),
-    )
-    : Math.max((canvas.width - targetWidth) / 2, 0);
-  const cropY = bounds
-    ? Math.min(
-      Math.max(((bounds.minY + bounds.maxY) / 2) - targetHeight / 2, 0),
-      Math.max(canvas.height - targetHeight, 0),
-    )
-    : Math.max((canvas.height - targetHeight) / 2, 0);
-
-  ctx.drawImage(
-    canvas,
-    cropX,
-    cropY,
-    Math.min(targetWidth, canvas.width),
-    Math.min(targetHeight, canvas.height),
-    0,
-    0,
-    Math.min(targetWidth, canvas.width),
-    Math.min(targetHeight, canvas.height),
-  );
-
-  return target;
+  getFeaturePolygons(feature).forEach((polygon) => {
+    polygon.forEach((ring) => {
+      ring.forEach((position, index) => {
+        const point = toCanvas(position);
+        if (index === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      });
+      ctx.closePath();
+    });
+  });
 }
 
 async function createExportMapCanvas(
-  html2canvas: typeof import('html2canvas').default,
   sourceElement: HTMLElement,
   records: DTIRecord[],
   pillar: Pillar,
@@ -145,74 +197,44 @@ async function createExportMapCanvas(
   bg: string,
 ): Promise<HTMLCanvasElement> {
   const sourceRect = sourceElement.getBoundingClientRect();
-  const width = Math.max(320, Math.round(sourceRect.width || sourceElement.clientWidth || 1040));
-  const height = Math.max(320, Math.round(sourceRect.height || sourceElement.clientHeight || 798));
-  const renderWidth = Math.round(width * 1.75);
-  const renderHeight = Math.round(height * 1.45);
-  const tempElement = document.createElement('div');
-  tempElement.style.position = 'fixed';
-  tempElement.style.left = '0';
-  tempElement.style.top = '0';
-  tempElement.style.zIndex = '-1';
-  tempElement.style.width = `${renderWidth}px`;
-  tempElement.style.height = `${renderHeight}px`;
-  tempElement.style.pointerEvents = 'none';
-  tempElement.style.background = bg;
-  document.body.appendChild(tempElement);
+  const width = Math.max(320, Math.round((sourceRect.width || sourceElement.clientWidth || 1040) * 2));
+  const height = Math.max(320, Math.round((sourceRect.height || sourceElement.clientHeight || 798) * 2));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d')!;
+  const viewport = getExportViewport(width, height);
 
-  const tempMap = L.map(tempElement, {
-    attributionControl: false,
-    center: [16.0, 105.8],
-    fadeAnimation: false,
-    markerZoomAnimation: false,
-    minZoom: 0,
-    preferCanvas: false,
-    zoom: 6,
-    zoomAnimation: false,
-    zoomControl: false,
-    zoomSnap: 0.1,
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalAlpha = 0.15;
+  await drawOSMTiles(ctx, width, height, viewport.zoom, viewport.center);
+  ctx.globalAlpha = 1;
+
+  ctx.save();
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  (regionsGeoJSON as GeoJSON.FeatureCollection).features.forEach((feature) => {
+    const regionId = feature.properties?.region_id as RegionId | undefined;
+    if (!regionId) return;
+    const record = records.find((item) => item.regionId === regionId);
+    const value = record?.[pillar] ?? 0;
+    const isSelected = regionId === selectedRegion;
+
+    ctx.beginPath();
+    drawRegionPath(ctx, feature, viewport.zoom, viewport.center, width, height);
+    ctx.fillStyle = getDTIColor(value);
+    ctx.globalAlpha = isSelected ? 0.96 : 0.85;
+    ctx.fill('evenodd');
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = isSelected ? 7 : 3.2;
+    ctx.stroke();
   });
 
-  const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    crossOrigin: true,
-    opacity: 0.15,
-  }).addTo(tempMap);
-
-  L.geoJSON(regionsGeoJSON as GeoJSON.FeatureCollection, {
-    style: (feature) => {
-      const regionId = feature?.properties?.region_id as RegionId | undefined;
-      const record = records.find((item) => item.regionId === regionId);
-      const value = record?.[pillar] ?? 0;
-      const isSelected = regionId === selectedRegion;
-
-      return {
-        color: '#ffffff',
-        fillColor: getDTIColor(value),
-        fillOpacity: isSelected ? 0.96 : 0.85,
-        weight: isSelected ? 3.5 : 1.6,
-      };
-    },
-  }).addTo(tempMap);
-
-  tempMap.invalidateSize(false);
-  tempMap.fitBounds(VIETNAM_LEAFLET_BOUNDS, { animate: false, padding: [80, 80] });
-  tempMap.setZoom(Math.max(tempMap.getZoom() - 0.8, 0), { animate: false });
-  await Promise.race([waitForTileLayer(tileLayer), waitForMap(2200)]);
-  await waitForMap(250);
-
-  try {
-    const renderedCanvas = await html2canvas(tempElement, {
-      backgroundColor: bg,
-      useCORS: true,
-      scale: 2,
-      logging: false,
-      removeContainer: true,
-    });
-    return cropMapToContent(renderedCanvas, width * 2, height * 2, bg);
-  } finally {
-    tempMap.remove();
-    tempElement.remove();
-  }
+  ctx.restore();
+  return canvas;
 }
 
 interface ExportOptions {
@@ -227,7 +249,6 @@ export async function exportMapPNG(
   options: ExportOptions,
   filename?: string,
 ): Promise<void> {
-  const html2canvas = (await import('html2canvas')).default;
   const mapElement = document.getElementById(elementId);
   if (!mapElement) return;
 
@@ -250,7 +271,6 @@ export async function exportMapPNG(
     : regionOrder.map((id) => records.find((r) => r.regionId === id)!).filter(Boolean);
 
   const mapCanvas = await createExportMapCanvas(
-    html2canvas,
     mapElement,
     records,
     pillar,
