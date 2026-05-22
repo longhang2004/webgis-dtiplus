@@ -1,7 +1,9 @@
+import L from 'leaflet';
 import { DTIRecord, Pillar, Year, RegionId } from '../types';
 import { REGION_META } from '../data/region-meta';
 import { getDTIColor, getDTIColorLabel } from './colorScale';
 import { getDTIForYear } from '../data/dti-data';
+import { getMapInstance } from '../store/appStore';
 import i18n from '../i18n';
 import regionsGeoJSON from '../data/geojson/vietnam-regions.geojson';
 
@@ -38,6 +40,36 @@ export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): voi
 
 type Coordinate = [number, number];
 type Bounds = { minLng: number; minLat: number; maxLng: number; maxLat: number };
+const VIETNAM_LEAFLET_BOUNDS = L.geoJSON(regionsGeoJSON as GeoJSON.FeatureCollection).getBounds();
+
+function waitForMap(ms = 1000): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function hideMapOverlays(mapElement: HTMLElement): () => void {
+  const selectors = [
+    '.leaflet-overlay-pane',
+    '.leaflet-marker-pane',
+    '.leaflet-tooltip-pane',
+    '.leaflet-popup-pane',
+    '.leaflet-control-container',
+  ];
+  const elements = selectors.flatMap((selector) => Array.from(mapElement.querySelectorAll<HTMLElement>(selector)));
+  const previous = elements.map((element) => ({
+    element,
+    visibility: element.style.visibility,
+  }));
+
+  elements.forEach(({ style }) => {
+    style.visibility = 'hidden';
+  });
+
+  return () => {
+    previous.forEach(({ element, visibility }) => {
+      element.style.visibility = visibility;
+    });
+  };
+}
 
 function extendBounds(bounds: Bounds, coords: GeoJSON.Position | GeoJSON.Position[][] | GeoJSON.Position[][][]): void {
   if (typeof coords[0] === 'number') {
@@ -87,7 +119,7 @@ function drawVietnamMap(
   records: DTIRecord[],
   pillar: Pillar,
   selectedRegion: RegionId | null,
-  colors: { mapBg: string; stroke: string; accent: string },
+  colors: { stroke: string; accent: string },
 ): void {
   const bounds = getVietnamBounds();
   const lngSpan = bounds.maxLng - bounds.minLng;
@@ -108,8 +140,6 @@ function drawVietnamMap(
   });
 
   ctx.save();
-  ctx.fillStyle = colors.mapBg;
-  ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
@@ -180,6 +210,7 @@ export async function exportMapPNG(
   options: ExportOptions,
   filename?: string,
 ): Promise<void> {
+  const html2canvas = (await import('html2canvas')).default;
   const mapElement = document.getElementById(elementId);
   if (!mapElement) return;
 
@@ -192,6 +223,34 @@ export async function exportMapPNG(
   const accent = darkMode ? '#00d4aa' : '#00997a';
   const text = darkMode ? '#e2eaff' : '#1a2436';
   const muted = darkMode ? '#6b80a8' : '#5c6b82';
+
+  const map = getMapInstance();
+  let savedCenter: L.LatLng | null = null;
+  let savedZoom: number | null = null;
+
+  if (map) {
+    savedCenter = map.getCenter();
+    savedZoom = map.getZoom();
+    map.fitBounds(VIETNAM_LEAFLET_BOUNDS, { animate: false, padding: [48, 48] });
+    await waitForMap(1000);
+  }
+
+  let mapCanvas: HTMLCanvasElement | null = null;
+  const restoreOverlays = hideMapOverlays(mapElement);
+  try {
+    mapCanvas = await html2canvas(mapElement, {
+      backgroundColor: bg,
+      useCORS: true,
+      scale: 2,
+      logging: false,
+      removeContainer: true,
+    });
+  } finally {
+    restoreOverlays();
+    if (map && savedCenter && savedZoom !== null) {
+      map.setView(savedCenter, savedZoom, { animate: false });
+    }
+  }
 
   // --- Prepare data ---
   const records = getDTIForYear(year);
@@ -206,8 +265,8 @@ export async function exportMapPNG(
   const HEADER_H = 64;
   const FOOTER_H = 36;
   const mapRect = mapElement.getBoundingClientRect();
-  const mapW = Math.max(1, Math.round(mapRect.width * 2));
-  const mapH = Math.max(1, Math.round(mapRect.height * 2));
+  const mapW = mapCanvas?.width ?? Math.max(1, Math.round(mapRect.width * 2));
+  const mapH = mapCanvas?.height ?? Math.max(1, Math.round(mapRect.height * 2));
   const totalW = mapW + PANEL_WIDTH * 2; // Scale panel to match map DPI (scale: 2)
   const totalH = mapH + (HEADER_H + FOOTER_H) * 2;
 
@@ -246,13 +305,22 @@ export async function exportMapPNG(
 
   // --- Map ---
   const mapY = HEADER_H * s;
+  if (mapCanvas) {
+    ctx.drawImage(mapCanvas, 0, mapY, mapW, mapH);
+    ctx.fillStyle = darkMode ? 'rgba(7, 14, 28, 0.22)' : 'rgba(240, 244, 248, 0.16)';
+    ctx.fillRect(0, mapY, mapW, mapH);
+  } else {
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, mapY, mapW, mapH);
+  }
+
   drawVietnamMap(
     ctx,
     { x: 0, y: mapY, width: mapW, height: mapH },
     records,
     pillar,
     selectedRegion,
-    { mapBg: bg, stroke: '#ffffff', accent },
+    { stroke: '#ffffff', accent },
   );
 
   // --- Side panel ---
