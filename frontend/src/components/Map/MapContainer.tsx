@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { MapContainer as LeafletMap, TileLayer, ScaleControl, ZoomControl, useMap } from 'react-leaflet';
 import ChoroplethLayer from './ChoroplethLayer';
 import MapLegend from './MapLegend';
+import IslandInset from './IslandInset';
 import { RegionId, Year, Pillar } from '../../types';
 import { setMapInstance } from '../../store/appStore';
 
@@ -47,6 +48,7 @@ export default function MapContainer({ year, pillar, selectedRegion, onRegionCli
         onRegionClick={onRegionClick}
       />
       <MapLegend pillar={pillar} />
+      <IslandInset />
     </LeafletMap>
   );
 }

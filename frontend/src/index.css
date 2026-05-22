@@ -85,6 +85,62 @@ body {
   max-width: 100%;
 }
 
+.webgis-island-inset {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 650;
+  width: min(260px, calc(100vw - 48px));
+  height: 178px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+}
+
+.webgis-island-inset__title {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  z-index: 651;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 86%, transparent);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.webgis-island-inset .leaflet-container {
+  background: var(--map-bg) !important;
+}
+
+.webgis-island-inset .leaflet-tooltip {
+  padding: 2px 5px !important;
+  border-radius: 5px !important;
+  background: color-mix(in srgb, var(--panel) 90%, transparent) !important;
+  color: var(--text) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 640px) {
+  .webgis-island-inset {
+    left: 12px;
+    top: 12px;
+    width: 200px;
+    height: 138px;
+  }
+
+  .webgis-island-inset__title {
+    font-size: 10px;
+  }
+}
+
 .leaflet-tooltip {
   background: var(--panel) !important;
   border: 1px solid var(--border) !important;

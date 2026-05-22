@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "HOANG_SA",
+        "name": "Hoàng Sa",
+        "name_en": "Paracel Islands",
+        "kind": "representative_point"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [112.25, 16.5]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TRUONG_SA",
+        "name": "Trường Sa",
+        "name_en": "Spratly Islands",
+        "kind": "representative_point"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [114.1, 10.6]
+      }
+    }
+  ]
+}

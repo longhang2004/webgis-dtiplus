@@ -4,6 +4,7 @@ import { getDTIColor, getDTIColorLabel } from './colorScale';
 import { getDTIForYear } from '../data/dti-data';
 import i18n from '../i18n';
 import regionsGeoJSON from '../data/geojson/vietnam-regions.geojson';
+import islandsGeoJSON from '../data/geojson/vietnam-islands.geojson';
 
 export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): void {
   const header = [
@@ -189,6 +190,92 @@ function drawRegionPath(
   });
 }
 
+async function createIslandInsetCanvas(darkMode: boolean): Promise<HTMLCanvasElement> {
+  const width = 460;
+  const height = 320;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d')!;
+  const bg = darkMode ? '#070e1c' : '#e8edf2';
+  const panelBg = darkMode ? '#0c1628' : '#ffffff';
+  const border = darkMode ? '#1a2d4d' : '#d1d9e6';
+  const text = darkMode ? '#e2eaff' : '#1a2436';
+  const accent = darkMode ? '#00d4aa' : '#00997a';
+  const insetZoom = 4.25;
+  const center = project(113.15, 13.55, insetZoom);
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalAlpha = 0.32;
+  await drawOSMTiles(ctx, width, height, insetZoom, center);
+  ctx.globalAlpha = 1;
+
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, width - 2, height - 2);
+
+  ctx.fillStyle = panelBg;
+  ctx.globalAlpha = 0.9;
+  roundRect(ctx, 16, height - 46, 222, 30, 8);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = accent;
+  ctx.font = 'bold 22px -apple-system, "Segoe UI", sans-serif';
+  ctx.fillText('Hoàng Sa · Trường Sa', 28, height - 24);
+
+  const features = (islandsGeoJSON as GeoJSON.FeatureCollection).features;
+  features.forEach((feature) => {
+    if (feature.geometry?.type !== 'Point') return;
+    const [lng, lat] = feature.geometry.coordinates;
+    const point = project(lng, lat, insetZoom);
+    const x = width / 2 + (point.x - center.x);
+    const y = height / 2 + (point.y - center.y);
+    const label = i18n.language === 'en'
+      ? String(feature.properties?.name_en ?? feature.properties?.name ?? '')
+      : String(feature.properties?.name ?? '');
+
+    ctx.beginPath();
+    ctx.arc(x, y, 9, 0, Math.PI * 2);
+    ctx.fillStyle = accent;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+
+    ctx.font = 'bold 20px -apple-system, "Segoe UI", sans-serif';
+    const labelWidth = ctx.measureText(label).width;
+    roundRect(ctx, x + 15, y - 18, labelWidth + 18, 28, 7);
+    ctx.fillStyle = panelBg;
+    ctx.globalAlpha = 0.92;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = text;
+    ctx.fillText(label, x + 24, y + 3);
+  });
+
+  return canvas;
+}
+
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+): void {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
 async function createExportMapCanvas(
   sourceElement: HTMLElement,
   records: DTIRecord[],
@@ -234,6 +321,17 @@ async function createExportMapCanvas(
   });
 
   ctx.restore();
+
+  const inset = await createIslandInsetCanvas(bg === '#070e1c');
+  const insetX = 32;
+  const insetY = 32;
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
+  ctx.shadowBlur = 28;
+  ctx.shadowOffsetY = 8;
+  ctx.drawImage(inset, insetX, insetY);
+  ctx.restore();
+
   return canvas;
 }
 
