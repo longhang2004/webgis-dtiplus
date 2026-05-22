@@ -9,6 +9,7 @@ let cachedApiData: DTIRecord[] | null = null;
 let apiDataPromise: Promise<DTIRecord[]> | null = null;
 let cachedGeoJSON: GeoJSON.FeatureCollection | null = null;
 let geoJSONPromise: Promise<GeoJSON.FeatureCollection | null> | null = null;
+let loggedDataSource: 'backend' | 'static' | null = null;
 
 /**
  * Converts API row format to frontend DTIRecord format
@@ -25,6 +26,12 @@ function apiRowToRecord(row: DTIRow): DTIRecord {
   };
 }
 
+function logDataSource(source: 'backend' | 'static'): void {
+  if (loggedDataSource === source) return;
+  loggedDataSource = source;
+  console.log(`data: ${source}`);
+}
+
 export function useMapData() {
   const { selectedYear, selectedPillar } = useAppStore();
   const [apiData, setApiData] = useState<DTIRecord[] | null>(cachedApiData);
@@ -32,7 +39,10 @@ export function useMapData() {
 
   // Fetch from API only when backend mode is explicitly enabled.
   useEffect(() => {
-    if (!BACKEND_ENABLED) return;
+    if (!BACKEND_ENABLED) {
+      logDataSource('static');
+      return;
+    }
 
     let cancelled = false;
     setLoading(true);
@@ -45,11 +55,15 @@ export function useMapData() {
 
     apiDataPromise
       .then((records) => {
-        if (!cancelled) setApiData(records);
+        if (!cancelled) {
+          setApiData(records);
+          logDataSource('backend');
+        }
       })
       .catch((err: Error) => {
         console.warn('[WebGIS DTI+] API unavailable, using static data:', err.message);
         setApiData(null); // fallback to static
+        logDataSource('static');
         apiDataPromise = null;
       })
       .finally(() => {

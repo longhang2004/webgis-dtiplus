@@ -14,7 +14,7 @@ export default function AboutModal({ onClose }: Props) {
       aria-labelledby="about-modal-title"
       className="absolute inset-0 z-[1200] flex min-h-0 items-end justify-center sm:items-center p-2 sm:p-4"
       style={{
-        background: 'rgba(7, 14, 28, 0.985)',
+        background: 'color-mix(in srgb, var(--bg) 88%, transparent)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
       }}
@@ -25,10 +25,10 @@ export default function AboutModal({ onClose }: Props) {
       <div
         className="w-full max-w-xl max-h-full overflow-y-auto rounded-t-2xl border shadow-2xl sm:rounded-xl p-6 sm:p-8 touch-manipulation"
         style={{
-          background:
-            'linear-gradient(180deg, rgba(12, 22, 40, 0.98), rgba(12, 22, 40, 0.94))',
+          background: 'var(--panel)',
           borderColor: 'var(--border)',
-          boxShadow: '0 30px 70px -20px rgba(0, 0, 0, 0.75)',
+          color: 'var(--text)',
+          boxShadow: '0 30px 70px -20px rgba(0, 0, 0, 0.35)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -44,7 +44,7 @@ export default function AboutModal({ onClose }: Props) {
             type="button"
             onClick={onClose}
             className="shrink-0 text-2xl leading-none w-9 h-9 rounded-lg flex items-center justify-center hover:opacity-80"
-            style={{ color: 'var(--muted)', background: 'rgba(26, 45, 77, 0.35)' }}
+            style={{ color: 'var(--muted)', background: 'color-mix(in srgb, var(--border) 35%, transparent)' }}
             aria-label={t('about.close')}
           >
             ×
@@ -82,7 +82,7 @@ export default function AboutModal({ onClose }: Props) {
           </div>
           <p
             className="italic pt-3 text-sm border-t"
-            style={{ color: 'var(--muted)', borderColor: 'rgba(26, 45, 77, 0.8)' }}
+            style={{ color: 'var(--muted)', borderColor: 'var(--border)' }}
           >
             {t('about.note_2025')}
           </p>
