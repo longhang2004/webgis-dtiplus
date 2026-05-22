@@ -2,6 +2,9 @@ import { useMemo } from 'react';
 import { CircleMarker, GeoJSON as GeoJSONLayer, MapContainer as LeafletMap, TileLayer, Tooltip } from 'react-leaflet';
 import type { PathOptions } from 'leaflet';
 import islandsGeoJSON from '../../data/geojson/vietnam-islands.geojson';
+import { getDTIColor } from '../../utils/colorScale';
+import { useMapData } from '../../hooks/useMapData';
+import { RegionId } from '../../types';
 import i18n from '../../i18n';
 
 type IslandFeature = GeoJSON.Feature<GeoJSON.MultiPolygon, {
@@ -16,18 +19,22 @@ const LABEL_POSITIONS: Record<string, [number, number]> = {
   HOANG_SA: [16.45, 112.05],
   TRUONG_SA: [10.55, 114.05],
 };
+const ISLAND_REGION: Record<string, RegionId> = {
+  HOANG_SA: 'BTB',
+  TRUONG_SA: 'BTB',
+};
 
 export default function IslandInset() {
+  const { yearData, selectedPillar, selectedYear } = useMapData();
   const features = useMemo(
     () => (islandsGeoJSON as GeoJSON.FeatureCollection).features as IslandFeature[],
     [],
   );
 
-  const islandStyle: PathOptions = {
-    color: '#ffffff',
-    weight: 1.4,
-    fillColor: '#00d4aa',
-    fillOpacity: 0.9,
+  const getIslandColor = (islandId: string): string => {
+    const regionId = ISLAND_REGION[islandId];
+    const record = yearData.find((item) => item.regionId === regionId);
+    return getDTIColor(record?.[selectedPillar] ?? 0);
   };
 
   return (
@@ -59,22 +66,29 @@ export default function IslandInset() {
           opacity={0.32}
         />
         <GeoJSONLayer
+          key={`${selectedYear}-${selectedPillar}`}
           data={islandsGeoJSON as GeoJSON.FeatureCollection}
-          style={islandStyle}
+          style={(feature): PathOptions => ({
+            color: '#ffffff',
+            weight: 1.4,
+            fillColor: getIslandColor(String(feature?.properties?.id ?? '')),
+            fillOpacity: 0.9,
+          })}
         />
         {features.map((feature) => {
           const [lat, lng] = LABEL_POSITIONS[feature.properties.id];
           const label = i18n.language === 'en' ? feature.properties.name_en : feature.properties.name;
+          const color = getIslandColor(feature.properties.id);
 
           return (
             <CircleMarker
-              key={feature.properties.id}
+              key={`${feature.properties.id}-${selectedYear}-${selectedPillar}`}
               center={[lat, lng]}
               radius={5}
               pathOptions={{
                 color: '#ffffff',
                 weight: 1.5,
-                fillColor: '#00d4aa',
+                fillColor: color,
                 fillOpacity: 1,
               }}
             >

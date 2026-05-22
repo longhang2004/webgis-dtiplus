@@ -44,6 +44,10 @@ const ISLAND_LABEL_POSITIONS: Record<string, { lng: number; lat: number }> = {
   HOANG_SA: { lng: 112.05, lat: 16.45 },
   TRUONG_SA: { lng: 114.05, lat: 10.55 },
 };
+const ISLAND_REGION: Record<string, RegionId> = {
+  HOANG_SA: 'BTB',
+  TRUONG_SA: 'BTB',
+};
 
 function project(lng: number, lat: number, zoom: number): Point {
   const sinLat = Math.sin((lat * Math.PI) / 180);
@@ -220,7 +224,7 @@ function drawRegionPath(
   });
 }
 
-async function createIslandInsetCanvas(darkMode: boolean): Promise<HTMLCanvasElement> {
+async function createIslandInsetCanvas(darkMode: boolean, records: DTIRecord[], pillar: Pillar): Promise<HTMLCanvasElement> {
   const width = 460;
   const height = 320;
   const canvas = document.createElement('canvas');
@@ -234,6 +238,11 @@ async function createIslandInsetCanvas(darkMode: boolean): Promise<HTMLCanvasEle
   const accent = darkMode ? '#00d4aa' : '#00997a';
   const featureCollection = islandsGeoJSON as GeoJSON.FeatureCollection;
   const { zoom: insetZoom, center } = getFitViewport(featureCollection, width, height, 46, 38);
+  const getIslandColor = (islandId: string): string => {
+    const regionId = ISLAND_REGION[islandId];
+    const record = records.find((item) => item.regionId === regionId);
+    return getDTIColor(record?.[pillar] ?? 0);
+  };
 
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);
@@ -256,9 +265,10 @@ async function createIslandInsetCanvas(darkMode: boolean): Promise<HTMLCanvasEle
   ctx.fillText('Hoàng Sa · Trường Sa', 28, height - 24);
 
   featureCollection.features.forEach((feature) => {
+    const islandColor = getIslandColor(String(feature.properties?.id ?? ''));
     ctx.beginPath();
     drawRegionPath(ctx, feature, insetZoom, center, width, height);
-    ctx.fillStyle = accent;
+    ctx.fillStyle = islandColor;
     ctx.globalAlpha = 0.9;
     ctx.fill('evenodd');
     ctx.globalAlpha = 1;
@@ -271,6 +281,7 @@ async function createIslandInsetCanvas(darkMode: boolean): Promise<HTMLCanvasEle
     const id = String(feature.properties?.id ?? '');
     const labelPosition = ISLAND_LABEL_POSITIONS[id];
     if (!labelPosition) return;
+    const islandColor = getIslandColor(id);
     const { lng, lat } = labelPosition;
     const point = project(lng, lat, insetZoom);
     const x = width / 2 + (point.x - center.x);
@@ -281,7 +292,7 @@ async function createIslandInsetCanvas(darkMode: boolean): Promise<HTMLCanvasEle
 
     ctx.beginPath();
     ctx.arc(x, y, 9, 0, Math.PI * 2);
-    ctx.fillStyle = accent;
+    ctx.fillStyle = islandColor;
     ctx.fill();
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#ffffff';
@@ -365,7 +376,7 @@ async function createExportMapCanvas(
 
   ctx.restore();
 
-  const inset = await createIslandInsetCanvas(bg === '#070e1c');
+  const inset = await createIslandInsetCanvas(bg === '#070e1c', records, pillar);
   const insetX = 32;
   const insetY = 32;
   ctx.save();
