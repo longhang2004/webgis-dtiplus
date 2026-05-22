@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { CircleMarker, MapContainer as LeafletMap, TileLayer, Tooltip } from 'react-leaflet';
+import { CircleMarker, GeoJSON as GeoJSONLayer, MapContainer as LeafletMap, TileLayer, Tooltip } from 'react-leaflet';
+import type { PathOptions } from 'leaflet';
 import islandsGeoJSON from '../../data/geojson/vietnam-islands.geojson';
 import i18n from '../../i18n';
 
-type IslandFeature = GeoJSON.Feature<GeoJSON.Point, {
+type IslandFeature = GeoJSON.Feature<GeoJSON.MultiPolygon, {
   id: string;
   name: string;
   name_en: string;
@@ -11,12 +12,23 @@ type IslandFeature = GeoJSON.Feature<GeoJSON.Point, {
 }>;
 
 const INSET_CENTER: [number, number] = [13.55, 113.15];
+const LABEL_POSITIONS: Record<string, [number, number]> = {
+  HOANG_SA: [16.45, 112.05],
+  TRUONG_SA: [10.55, 114.05],
+};
 
 export default function IslandInset() {
   const features = useMemo(
     () => (islandsGeoJSON as GeoJSON.FeatureCollection).features as IslandFeature[],
     [],
   );
+
+  const islandStyle: PathOptions = {
+    color: '#ffffff',
+    weight: 1.4,
+    fillColor: '#00d4aa',
+    fillOpacity: 0.9,
+  };
 
   return (
     <div
@@ -46,8 +58,12 @@ export default function IslandInset() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           opacity={0.32}
         />
+        <GeoJSONLayer
+          data={islandsGeoJSON as GeoJSON.FeatureCollection}
+          style={islandStyle}
+        />
         {features.map((feature) => {
-          const [lng, lat] = feature.geometry.coordinates;
+          const [lat, lng] = LABEL_POSITIONS[feature.properties.id];
           const label = i18n.language === 'en' ? feature.properties.name_en : feature.properties.name;
 
           return (

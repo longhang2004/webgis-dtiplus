@@ -40,6 +40,10 @@ export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): voi
 const TILE_SIZE = 256;
 type Point = { x: number; y: number };
 type GeoBounds = { minLng: number; minLat: number; maxLng: number; maxLat: number };
+const ISLAND_LABEL_POSITIONS: Record<string, { lng: number; lat: number }> = {
+  HOANG_SA: { lng: 112.05, lat: 16.45 },
+  TRUONG_SA: { lng: 114.05, lat: 10.55 },
+};
 
 function project(lng: number, lat: number, zoom: number): Point {
   const sinLat = Math.sin((lat * Math.PI) / 180);
@@ -65,7 +69,7 @@ function extendGeoBounds(bounds: GeoBounds, coords: GeoJSON.Position | GeoJSON.P
   });
 }
 
-function getVietnamGeoBounds(): GeoBounds {
+function getFeatureCollectionBounds(featureCollection: GeoJSON.FeatureCollection): GeoBounds {
   const bounds: GeoBounds = {
     minLng: Infinity,
     minLat: Infinity,
@@ -73,13 +77,17 @@ function getVietnamGeoBounds(): GeoBounds {
     maxLat: -Infinity,
   };
 
-  (regionsGeoJSON as GeoJSON.FeatureCollection).features.forEach((feature) => {
+  featureCollection.features.forEach((feature) => {
     if (feature.geometry?.type === 'MultiPolygon' || feature.geometry?.type === 'Polygon') {
       extendGeoBounds(bounds, feature.geometry.coordinates);
     }
   });
 
   return bounds;
+}
+
+function getVietnamGeoBounds(): GeoBounds {
+  return getFeatureCollectionBounds(regionsGeoJSON as GeoJSON.FeatureCollection);
 }
 
 function getFeaturePolygons(feature: GeoJSON.Feature): GeoJSON.Position[][][] {
@@ -90,6 +98,28 @@ function getFeaturePolygons(feature: GeoJSON.Feature): GeoJSON.Position[][][] {
     return feature.geometry.coordinates as GeoJSON.Position[][][];
   }
   return [];
+}
+
+function getFitViewport(featureCollection: GeoJSON.FeatureCollection, width: number, height: number, paddingX: number, paddingY: number): { zoom: number; center: Point } {
+  const bounds = getFeatureCollectionBounds(featureCollection);
+  const sw0 = project(bounds.minLng, bounds.minLat, 0);
+  const ne0 = project(bounds.maxLng, bounds.maxLat, 0);
+  const boundsWidth0 = Math.abs(ne0.x - sw0.x);
+  const boundsHeight0 = Math.abs(sw0.y - ne0.y);
+  const zoom = Math.min(
+    Math.log2((width - paddingX * 2) / boundsWidth0),
+    Math.log2((height - paddingY * 2) / boundsHeight0),
+  );
+
+  const sw = project(bounds.minLng, bounds.minLat, zoom);
+  const ne = project(bounds.maxLng, bounds.maxLat, zoom);
+  return {
+    zoom,
+    center: {
+      x: (sw.x + ne.x) / 2,
+      y: (sw.y + ne.y) / 2,
+    },
+  };
 }
 
 function getExportViewport(width: number, height: number): { zoom: number; center: Point } {
@@ -202,8 +232,8 @@ async function createIslandInsetCanvas(darkMode: boolean): Promise<HTMLCanvasEle
   const border = darkMode ? '#1a2d4d' : '#d1d9e6';
   const text = darkMode ? '#e2eaff' : '#1a2436';
   const accent = darkMode ? '#00d4aa' : '#00997a';
-  const insetZoom = 4.25;
-  const center = project(113.15, 13.55, insetZoom);
+  const featureCollection = islandsGeoJSON as GeoJSON.FeatureCollection;
+  const { zoom: insetZoom, center } = getFitViewport(featureCollection, width, height, 46, 38);
 
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);
@@ -225,10 +255,23 @@ async function createIslandInsetCanvas(darkMode: boolean): Promise<HTMLCanvasEle
   ctx.font = 'bold 22px -apple-system, "Segoe UI", sans-serif';
   ctx.fillText('Hoàng Sa · Trường Sa', 28, height - 24);
 
-  const features = (islandsGeoJSON as GeoJSON.FeatureCollection).features;
-  features.forEach((feature) => {
-    if (feature.geometry?.type !== 'Point') return;
-    const [lng, lat] = feature.geometry.coordinates;
+  featureCollection.features.forEach((feature) => {
+    ctx.beginPath();
+    drawRegionPath(ctx, feature, insetZoom, center, width, height);
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = 0.9;
+    ctx.fill('evenodd');
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+
+  featureCollection.features.forEach((feature) => {
+    const id = String(feature.properties?.id ?? '');
+    const labelPosition = ISLAND_LABEL_POSITIONS[id];
+    if (!labelPosition) return;
+    const { lng, lat } = labelPosition;
     const point = project(lng, lat, insetZoom);
     const x = width / 2 + (point.x - center.x);
     const y = height / 2 + (point.y - center.y);

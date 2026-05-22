@@ -154,6 +154,7 @@ Nếu `VITE_BACKEND_ENABLED=false` hoặc không được định nghĩa, fronte
 - **Phương pháp**: Chuẩn hóa Min-Max, tổng hợp trọng số dân số từ cấp tỉnh lên cấp vùng
 - **Chỉ số DTI+**: Trung bình có trọng số của 3 trụ cột (1/3 mỗi trụ cột)
 - **Bản đồ**: GeoJSON chuẩn WGS84 (EPSG:4326)
+- **Hoàng Sa, Trường Sa**: Trích từ bộ dữ liệu `Provinces_included_Paracel_SpratlyIslands_combine.geojson` của Nguyễn Duy Liêm, *Vietnam GIS Data*, GitHub: https://github.com/nguyenduy1133/Free-GIS-Data
 
 ## Nhóm tác giả
 
