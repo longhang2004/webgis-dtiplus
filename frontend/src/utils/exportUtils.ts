@@ -3,7 +3,6 @@ import { DTIRecord, Pillar, Year, RegionId } from '../types';
 import { REGION_META } from '../data/region-meta';
 import { getDTIColor, getDTIColorLabel } from './colorScale';
 import { getDTIForYear } from '../data/dti-data';
-import { getMapInstance } from '../store/appStore';
 import i18n from '../i18n';
 import regionsGeoJSON from '../data/geojson/vietnam-regions.geojson';
 
@@ -38,164 +37,182 @@ export function exportCSV(records: DTIRecord[], year: Year, pillar: Pillar): voi
 
 /* ─── PNG Export ─────────────────────────────────────────────────── */
 
-type Coordinate = [number, number];
-type Bounds = { minLng: number; minLat: number; maxLng: number; maxLat: number };
 const VIETNAM_LEAFLET_BOUNDS = L.geoJSON(regionsGeoJSON as GeoJSON.FeatureCollection).getBounds();
 
 function waitForMap(ms = 1000): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function hideMapOverlays(mapElement: HTMLElement): () => void {
-  const selectors = [
-    '.leaflet-overlay-pane',
-    '.leaflet-marker-pane',
-    '.leaflet-tooltip-pane',
-    '.leaflet-popup-pane',
-    '.leaflet-control-container',
-  ];
-  const elements = selectors.flatMap((selector) => Array.from(mapElement.querySelectorAll<HTMLElement>(selector)));
-  const previous = elements.map((element) => ({
-    element,
-    visibility: element.style.visibility,
-  }));
+function waitForTileLayer(tileLayer: L.TileLayer, timeoutMs = 2200): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      tileLayer.off('load', finish);
+      resolve();
+    };
 
-  elements.forEach(({ style }) => {
-    style.visibility = 'hidden';
-  });
-
-  return () => {
-    previous.forEach(({ element, visibility }) => {
-      element.style.visibility = visibility;
-    });
-  };
-}
-
-function extendBounds(bounds: Bounds, coords: GeoJSON.Position | GeoJSON.Position[][] | GeoJSON.Position[][][]): void {
-  if (typeof coords[0] === 'number') {
-    const [lng, lat] = coords as GeoJSON.Position;
-    bounds.minLng = Math.min(bounds.minLng, lng);
-    bounds.maxLng = Math.max(bounds.maxLng, lng);
-    bounds.minLat = Math.min(bounds.minLat, lat);
-    bounds.maxLat = Math.max(bounds.maxLat, lat);
-    return;
-  }
-
-  (coords as Array<GeoJSON.Position | GeoJSON.Position[][]>).forEach((child) => {
-    extendBounds(bounds, child as GeoJSON.Position | GeoJSON.Position[][] | GeoJSON.Position[][][]);
+    tileLayer.on('load', finish);
+    window.setTimeout(finish, timeoutMs);
   });
 }
 
-function getVietnamBounds(): Bounds {
-  const bounds: Bounds = {
-    minLng: Infinity,
-    minLat: Infinity,
-    maxLng: -Infinity,
-    maxLat: -Infinity,
-  };
+function getMapContentBounds(canvas: HTMLCanvasElement): { minX: number; minY: number; maxX: number; maxY: number } | null {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
 
-  (regionsGeoJSON as GeoJSON.FeatureCollection).features.forEach((feature) => {
-    if (feature.geometry?.type === 'MultiPolygon' || feature.geometry?.type === 'Polygon') {
-      extendBounds(bounds, feature.geometry.coordinates);
+  const { width, height } = canvas;
+  const data = ctx.getImageData(0, 0, width, height).data;
+  let minX = width;
+  let minY = height;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < height; y += 2) {
+    for (let x = 0; x < width; x += 2) {
+      const index = (y * width + x) * 4;
+      const r = data[index];
+      const g = data[index + 1];
+      const b = data[index + 2];
+      const a = data[index + 3];
+      if (a < 200) continue;
+
+      const isChoroplethFill =
+        (g > 90 && r > 80 && b < 95)
+        || (r > 150 && g > 70 && b < 85)
+        || (g > 125 && b < 170 && r < 95);
+      const isWhiteBoundary = r > 210 && g > 210 && b > 210;
+
+      if (isChoroplethFill || isWhiteBoundary) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
     }
-  });
+  }
 
-  return bounds;
+  if (maxX < 0 || maxY < 0) return null;
+  return { minX, minY, maxX, maxY };
 }
 
-function getFeaturePolygons(feature: GeoJSON.Feature): Coordinate[][][] {
-  if (feature.geometry?.type === 'Polygon') {
-    return [feature.geometry.coordinates as Coordinate[][]];
-  }
-  if (feature.geometry?.type === 'MultiPolygon') {
-    return feature.geometry.coordinates as Coordinate[][][];
-  }
-  return [];
+function cropMapToContent(canvas: HTMLCanvasElement, targetWidth: number, targetHeight: number, bg: string): HTMLCanvasElement {
+  if (canvas.width <= targetWidth && canvas.height <= targetHeight) return canvas;
+
+  const target = document.createElement('canvas');
+  target.width = targetWidth;
+  target.height = targetHeight;
+  const ctx = target.getContext('2d')!;
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+  const bounds = getMapContentBounds(canvas);
+  const cropX = bounds
+    ? Math.min(
+      Math.max(((bounds.minX + bounds.maxX) / 2) - targetWidth / 2, 0),
+      Math.max(canvas.width - targetWidth, 0),
+    )
+    : Math.max((canvas.width - targetWidth) / 2, 0);
+  const cropY = bounds
+    ? Math.min(
+      Math.max(((bounds.minY + bounds.maxY) / 2) - targetHeight / 2, 0),
+      Math.max(canvas.height - targetHeight, 0),
+    )
+    : Math.max((canvas.height - targetHeight) / 2, 0);
+
+  ctx.drawImage(
+    canvas,
+    cropX,
+    cropY,
+    Math.min(targetWidth, canvas.width),
+    Math.min(targetHeight, canvas.height),
+    0,
+    0,
+    Math.min(targetWidth, canvas.width),
+    Math.min(targetHeight, canvas.height),
+  );
+
+  return target;
 }
 
-function drawVietnamMap(
-  ctx: CanvasRenderingContext2D,
-  rect: { x: number; y: number; width: number; height: number },
+async function createExportMapCanvas(
+  html2canvas: typeof import('html2canvas').default,
+  sourceElement: HTMLElement,
   records: DTIRecord[],
   pillar: Pillar,
   selectedRegion: RegionId | null,
-  colors: { stroke: string; accent: string },
-): void {
-  const bounds = getVietnamBounds();
-  const lngSpan = bounds.maxLng - bounds.minLng;
-  const latSpan = bounds.maxLat - bounds.minLat;
-  const padding = Math.min(rect.width * 0.08, rect.height * 0.045, 72);
-  const scale = Math.min(
-    (rect.width - padding * 2) / lngSpan,
-    (rect.height - padding * 2) / latSpan,
-  );
-  const mapWidth = lngSpan * scale;
-  const mapHeight = latSpan * scale;
-  const offsetX = rect.x + (rect.width - mapWidth) / 2;
-  const offsetY = rect.y + (rect.height - mapHeight) / 2;
+  bg: string,
+): Promise<HTMLCanvasElement> {
+  const sourceRect = sourceElement.getBoundingClientRect();
+  const width = Math.max(320, Math.round(sourceRect.width || sourceElement.clientWidth || 1040));
+  const height = Math.max(320, Math.round(sourceRect.height || sourceElement.clientHeight || 798));
+  const renderWidth = Math.round(width * 1.75);
+  const renderHeight = Math.round(height * 1.45);
+  const tempElement = document.createElement('div');
+  tempElement.style.position = 'fixed';
+  tempElement.style.left = '0';
+  tempElement.style.top = '0';
+  tempElement.style.zIndex = '-1';
+  tempElement.style.width = `${renderWidth}px`;
+  tempElement.style.height = `${renderHeight}px`;
+  tempElement.style.pointerEvents = 'none';
+  tempElement.style.background = bg;
+  document.body.appendChild(tempElement);
 
-  const project = ([lng, lat]: Coordinate) => ({
-    x: offsetX + (lng - bounds.minLng) * scale,
-    y: offsetY + (bounds.maxLat - lat) * scale,
+  const tempMap = L.map(tempElement, {
+    attributionControl: false,
+    center: [16.0, 105.8],
+    fadeAnimation: false,
+    markerZoomAnimation: false,
+    minZoom: 0,
+    preferCanvas: false,
+    zoom: 6,
+    zoomAnimation: false,
+    zoomControl: false,
+    zoomSnap: 0.1,
   });
 
-  ctx.save();
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
+  const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    crossOrigin: true,
+    opacity: 0.15,
+  }).addTo(tempMap);
 
-  (regionsGeoJSON as GeoJSON.FeatureCollection).features.forEach((feature) => {
-    const regionId = feature.properties?.region_id as RegionId | undefined;
-    if (!regionId) return;
+  L.geoJSON(regionsGeoJSON as GeoJSON.FeatureCollection, {
+    style: (feature) => {
+      const regionId = feature?.properties?.region_id as RegionId | undefined;
+      const record = records.find((item) => item.regionId === regionId);
+      const value = record?.[pillar] ?? 0;
+      const isSelected = regionId === selectedRegion;
 
-    const record = records.find((item) => item.regionId === regionId);
-    const value = record?.[pillar] ?? 0;
-    const isSelected = regionId === selectedRegion;
+      return {
+        color: '#ffffff',
+        fillColor: getDTIColor(value),
+        fillOpacity: isSelected ? 0.96 : 0.85,
+        weight: isSelected ? 3.5 : 1.6,
+      };
+    },
+  }).addTo(tempMap);
 
-    ctx.beginPath();
-    getFeaturePolygons(feature).forEach((polygon) => {
-      polygon.forEach((ring) => {
-        ring.forEach((point, index) => {
-          const projected = project(point);
-          if (index === 0) ctx.moveTo(projected.x, projected.y);
-          else ctx.lineTo(projected.x, projected.y);
-        });
-        ctx.closePath();
-      });
+  tempMap.invalidateSize(false);
+  tempMap.fitBounds(VIETNAM_LEAFLET_BOUNDS, { animate: false, padding: [80, 80] });
+  tempMap.setZoom(Math.max(tempMap.getZoom() - 0.8, 0), { animate: false });
+  await Promise.race([waitForTileLayer(tileLayer), waitForMap(2200)]);
+  await waitForMap(250);
+
+  try {
+    const renderedCanvas = await html2canvas(tempElement, {
+      backgroundColor: bg,
+      useCORS: true,
+      scale: 2,
+      logging: false,
+      removeContainer: true,
     });
-
-    ctx.fillStyle = getDTIColor(value);
-    ctx.globalAlpha = isSelected ? 1 : 0.94;
-    ctx.fill('evenodd');
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = colors.stroke;
-    ctx.lineWidth = isSelected ? 3.5 : 2.4;
-    ctx.stroke();
-  });
-
-  if (selectedRegion) {
-    const selectedFeature = (regionsGeoJSON as GeoJSON.FeatureCollection).features.find(
-      (feature) => feature.properties?.region_id === selectedRegion,
-    );
-
-    if (selectedFeature) {
-      ctx.beginPath();
-      getFeaturePolygons(selectedFeature).forEach((polygon) => {
-        polygon.forEach((ring) => {
-          ring.forEach((point, index) => {
-            const projected = project(point);
-            if (index === 0) ctx.moveTo(projected.x, projected.y);
-            else ctx.lineTo(projected.x, projected.y);
-          });
-          ctx.closePath();
-        });
-      });
-      ctx.strokeStyle = colors.accent;
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
-    }
+    return cropMapToContent(renderedCanvas, width * 2, height * 2, bg);
+  } finally {
+    tempMap.remove();
+    tempElement.remove();
   }
-
-  ctx.restore();
 }
 
 interface ExportOptions {
@@ -224,34 +241,6 @@ export async function exportMapPNG(
   const text = darkMode ? '#e2eaff' : '#1a2436';
   const muted = darkMode ? '#6b80a8' : '#5c6b82';
 
-  const map = getMapInstance();
-  let savedCenter: L.LatLng | null = null;
-  let savedZoom: number | null = null;
-
-  if (map) {
-    savedCenter = map.getCenter();
-    savedZoom = map.getZoom();
-    map.fitBounds(VIETNAM_LEAFLET_BOUNDS, { animate: false, padding: [48, 48] });
-    await waitForMap(1000);
-  }
-
-  let mapCanvas: HTMLCanvasElement | null = null;
-  const restoreOverlays = hideMapOverlays(mapElement);
-  try {
-    mapCanvas = await html2canvas(mapElement, {
-      backgroundColor: bg,
-      useCORS: true,
-      scale: 2,
-      logging: false,
-      removeContainer: true,
-    });
-  } finally {
-    restoreOverlays();
-    if (map && savedCenter && savedZoom !== null) {
-      map.setView(savedCenter, savedZoom, { animate: false });
-    }
-  }
-
   // --- Prepare data ---
   const records = getDTIForYear(year);
   const sortedRecords = [...records].sort((a, b) => b[pillar] - a[pillar]);
@@ -260,13 +249,22 @@ export async function exportMapPNG(
     ? sortedRecords
     : regionOrder.map((id) => records.find((r) => r.regionId === id)!).filter(Boolean);
 
+  const mapCanvas = await createExportMapCanvas(
+    html2canvas,
+    mapElement,
+    records,
+    pillar,
+    selectedRegion,
+    bg,
+  );
+
   // --- Compose final image ---
   const PANEL_WIDTH = 420;
   const HEADER_H = 64;
   const FOOTER_H = 36;
   const mapRect = mapElement.getBoundingClientRect();
-  const mapW = mapCanvas?.width ?? Math.max(1, Math.round(mapRect.width * 2));
-  const mapH = mapCanvas?.height ?? Math.max(1, Math.round(mapRect.height * 2));
+  const mapW = mapCanvas.width || Math.max(1, Math.round(mapRect.width * 2));
+  const mapH = mapCanvas.height || Math.max(1, Math.round(mapRect.height * 2));
   const totalW = mapW + PANEL_WIDTH * 2; // Scale panel to match map DPI (scale: 2)
   const totalH = mapH + (HEADER_H + FOOTER_H) * 2;
 
@@ -313,15 +311,6 @@ export async function exportMapPNG(
     ctx.fillStyle = bg;
     ctx.fillRect(0, mapY, mapW, mapH);
   }
-
-  drawVietnamMap(
-    ctx,
-    { x: 0, y: mapY, width: mapW, height: mapH },
-    records,
-    pillar,
-    selectedRegion,
-    { stroke: '#ffffff', accent },
-  );
 
   // --- Side panel ---
   const panelX = mapW;
