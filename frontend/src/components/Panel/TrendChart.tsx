@@ -5,10 +5,10 @@ import {
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
-import { DTI_DATA } from '../../data/dti-data';
 import { REGION_META } from '../../data/region-meta';
 import { REGION_COLORS } from '../../utils/colorScale';
 import { RegionId } from '../../types';
+import { useMapData } from '../../hooks/useMapData';
 
 const REGION_IDS = ['DBSH', 'DNB', 'BTB', 'DBSCL', 'TDMNPB', 'TN'] as RegionId[];
 const YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
@@ -16,11 +16,12 @@ const YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
 export default function TrendChart() {
   const { selectedPillar, selectedRegion, selectedYear, setRegion } = useAppStore();
   const { t } = useTranslation();
+  const { allData } = useMapData();
 
   const chartData = YEARS.map((year) => {
     const row: Record<string, number | string> = { year: String(year) + (year === 2025 ? '*' : '') };
     REGION_IDS.forEach((id) => {
-      const rec = DTI_DATA.find((d) => d.regionId === id && d.year === year);
+      const rec = allData.find((d) => d.regionId === id && d.year === year);
       row[id] = rec ? rec[selectedPillar] : 0;
     });
     return row;

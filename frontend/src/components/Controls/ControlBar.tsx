@@ -5,16 +5,16 @@ import PillarSelector from './PillarSelector';
 import { useAppStore } from '../../store/appStore';
 import { useTranslation } from 'react-i18next';
 import { exportCSV } from '../../utils/exportUtils';
-import { getDTIForYear } from '../../data/dti-data';
+import { useMapData } from '../../hooks/useMapData';
 
 export default function ControlBar() {
   const { selectedYear, selectedPillar, selectedRegion, splitMode, darkMode, toggleSplitMode } = useAppStore();
   const { t } = useTranslation();
+  const { yearData } = useMapData();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleExportCSV = () => {
-    const data = getDTIForYear(selectedYear);
-    exportCSV(data, selectedYear, selectedPillar);
+    exportCSV(yearData, selectedYear, selectedPillar);
     setMenuOpen(false);
   };
 

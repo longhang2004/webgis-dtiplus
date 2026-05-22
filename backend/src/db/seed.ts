@@ -1,4 +1,6 @@
 import { pool } from './connection';
+import fs from 'fs';
+import path from 'path';
 
 const REGIONS = [
   { id: 'TDMNPB', name: 'Trung du và miền núi phía Bắc', short_name: 'TDMNPB', area_km2: 95222, population: 12609000 },
@@ -48,12 +50,37 @@ const DTI_RECORDS: Array<{ regionId: string; year: number; total: number; gov: n
   { regionId: 'TN',     year: 2025, total: 0.475, gov: 0.478, econ: 0.462, soc: 0.484, isEstimate: true  },
 ];
 
+type RegionFeature = {
+  properties?: { region_id?: string };
+  geometry: unknown;
+};
+
 async function seed() {
+  const geojsonPath = path.resolve(__dirname, '../../../frontend/src/data/geojson/vietnam-regions.geojson');
+  const geojson = JSON.parse(fs.readFileSync(geojsonPath, 'utf8')) as { features: RegionFeature[] };
+  const geometryByRegion = new Map(
+    geojson.features.map((feature) => [feature.properties?.region_id, feature.geometry])
+  );
+
   for (const r of REGIONS) {
+    const geometry = geometryByRegion.get(r.id);
     await pool.query(
-      `INSERT INTO regions (id, name, short_name, area_km2, population)
-       VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING`,
-      [r.id, r.name, r.short_name, r.area_km2, r.population]
+      `INSERT INTO regions (id, name, short_name, area_km2, population, geom)
+       VALUES (
+         $1,
+         $2,
+         $3,
+         $4,
+         $5,
+         ST_Multi(ST_CollectionExtract(ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON($6), 4326)), 3))
+       )
+       ON CONFLICT (id) DO UPDATE SET
+         name = EXCLUDED.name,
+         short_name = EXCLUDED.short_name,
+         area_km2 = EXCLUDED.area_km2,
+         population = EXCLUDED.population,
+         geom = EXCLUDED.geom`,
+      [r.id, r.name, r.short_name, r.area_km2, r.population, JSON.stringify(geometry)]
     );
   }
   for (const d of DTI_RECORDS) {

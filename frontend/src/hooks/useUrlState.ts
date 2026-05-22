@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { RegionId, Year, Pillar } from '../types';
 
 export function useUrlState() {
   const store = useAppStore();
+  const [hydratedFromUrl, setHydratedFromUrl] = useState(false);
 
   // Read URL on mount
   useEffect(() => {
@@ -19,11 +20,14 @@ export function useUrlState() {
     if (region) store.setRegion(region as RegionId);
     if (mode === 'split') store.toggleSplitMode();
     if (splitYear) store.setSplitYear(parseInt(splitYear) as Year);
+    setHydratedFromUrl(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Sync state to URL
   useEffect(() => {
+    if (!hydratedFromUrl) return;
+
     const params = new URLSearchParams();
     params.set('year', String(store.selectedYear));
     params.set('pillar', store.selectedPillar);
@@ -34,5 +38,5 @@ export function useUrlState() {
     }
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState(null, '', newUrl);
-  }, [store.selectedYear, store.selectedPillar, store.selectedRegion, store.splitMode, store.splitYear]);
+  }, [hydratedFromUrl, store.selectedYear, store.selectedPillar, store.selectedRegion, store.splitMode, store.splitYear]);
 }

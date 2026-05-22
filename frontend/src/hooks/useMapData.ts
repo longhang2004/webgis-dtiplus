@@ -1,10 +1,14 @@
 import { useMemo, useEffect, useState } from 'react';
 import { DTI_DATA, getDTIForYear, getDTIForRegion } from '../data/dti-data';
 import { useAppStore } from '../store/appStore';
-import { fetchDTIData, DTIRow } from '../api';
+import { fetchDTIData, fetchRegionsGeoJSON, DTIRow } from '../api';
 import { DTIRecord, RegionId, Year } from '../types';
 
 const BACKEND_ENABLED = import.meta.env.VITE_BACKEND_ENABLED === 'true';
+let cachedApiData: DTIRecord[] | null = null;
+let apiDataPromise: Promise<DTIRecord[]> | null = null;
+let cachedGeoJSON: GeoJSON.FeatureCollection | null = null;
+let geoJSONPromise: Promise<GeoJSON.FeatureCollection | null> | null = null;
 
 /**
  * Converts API row format to frontend DTIRecord format
@@ -23,7 +27,7 @@ function apiRowToRecord(row: DTIRow): DTIRecord {
 
 export function useMapData() {
   const { selectedYear, selectedPillar } = useAppStore();
-  const [apiData, setApiData] = useState<DTIRecord[] | null>(null);
+  const [apiData, setApiData] = useState<DTIRecord[] | null>(cachedApiData);
   const [loading, setLoading] = useState(false);
 
   // Fetch from API only when backend mode is explicitly enabled.
@@ -33,15 +37,20 @@ export function useMapData() {
     let cancelled = false;
     setLoading(true);
 
-    fetchDTIData()
+    apiDataPromise ??= fetchDTIData()
       .then((rows) => {
-        if (!cancelled) {
-          setApiData(rows.map(apiRowToRecord));
-        }
+        cachedApiData = rows.map(apiRowToRecord);
+        return cachedApiData;
+      });
+
+    apiDataPromise
+      .then((records) => {
+        if (!cancelled) setApiData(records);
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         console.warn('[WebGIS DTI+] API unavailable, using static data:', err.message);
         setApiData(null); // fallback to static
+        apiDataPromise = null;
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -75,4 +84,38 @@ export function useMapData() {
   );
 
   return { yearData, allData, regionTimeSeries, selectedYear, selectedPillar, loading };
+}
+
+export function useRegionsGeoJSON() {
+  const [geoJSON, setGeoJSON] = useState<GeoJSON.FeatureCollection | null>(cachedGeoJSON);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!BACKEND_ENABLED) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    geoJSONPromise ??= fetchRegionsGeoJSON().then((result) => {
+      cachedGeoJSON = result;
+      return result;
+    });
+
+    geoJSONPromise
+      .then((result) => {
+        if (!cancelled) setGeoJSON(result);
+      })
+      .catch((err: Error) => {
+        console.warn('[WebGIS DTI+] PostGIS GeoJSON unavailable, using local GeoJSON:', err.message);
+        setGeoJSON(null);
+        geoJSONPromise = null;
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  return { geoJSON, loading };
 }

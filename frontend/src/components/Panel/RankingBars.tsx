@@ -1,16 +1,16 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
-import { getDTIForYear } from '../../data/dti-data';
 import { REGION_META } from '../../data/region-meta';
 import { getDTIColor, REGION_COLORS } from '../../utils/colorScale';
 import { getRanking } from '../../utils/statistics';
 import { RegionId } from '../../types';
+import { useMapData } from '../../hooks/useMapData';
 
 export default function RankingBars() {
   const { selectedYear, selectedPillar, selectedRegion, setRegion } = useAppStore();
   const { t } = useTranslation();
-  const yearData = getDTIForYear(selectedYear);
+  const { yearData } = useMapData();
   const ranked = getRanking(yearData, selectedPillar);
   const maxVal = ranked[0]?.[selectedPillar] ?? 1;
 

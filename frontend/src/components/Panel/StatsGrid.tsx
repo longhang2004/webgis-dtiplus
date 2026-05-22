@@ -1,19 +1,17 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
-import { getDTIForYear } from '../../data/dti-data';
-import { REGION_META } from '../../data/region-meta';
 import { computeStats } from '../../utils/statistics';
-import { DTI_DATA } from '../../data/dti-data';
+import { useMapData } from '../../hooks/useMapData';
 
 export default function StatsGrid() {
   const { selectedYear, selectedPillar } = useAppStore();
   const { t } = useTranslation();
-  const yearData = getDTIForYear(selectedYear);
+  const { yearData, allData } = useMapData();
   const stats = computeStats(yearData, selectedPillar);
 
   // CAGR from 2020
-  const year2020Data = getDTIForYear(2020);
+  const year2020Data = allData.filter((r) => r.year === 2020);
   const vals2020 = year2020Data.map((r) => r[selectedPillar]);
   const valsNow = yearData.map((r) => r[selectedPillar]);
   const avgNow = valsNow.reduce((s, v) => s + v, 0) / valsNow.length;

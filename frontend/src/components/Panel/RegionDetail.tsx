@@ -1,15 +1,16 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
-import { getDTIValue, DTI_DATA } from '../../data/dti-data';
 import { REGION_META } from '../../data/region-meta';
 import { getDTIColor } from '../../utils/colorScale';
 import { getYoYChange, getRanking } from '../../utils/statistics';
-import { DTIRecord } from '../../types';
+import { Pillar, RegionId, Year } from '../../types';
+import { useMapData } from '../../hooks/useMapData';
 
 export default function RegionDetail() {
   const { selectedRegion, selectedYear, selectedPillar } = useAppStore();
   const { t } = useTranslation();
+  const { allData } = useMapData();
 
   if (!selectedRegion) {
     return (
@@ -20,16 +21,16 @@ export default function RegionDetail() {
   }
 
   const meta = REGION_META[selectedRegion];
-  const value = getDTIValue(selectedRegion, selectedYear, selectedPillar);
+  const value = getValue(selectedRegion, selectedYear, selectedPillar);
   const color = getDTIColor(value);
-  const yearData = DTI_DATA.filter((d) => d.year === selectedYear);
+  const yearData = allData.filter((d) => d.year === selectedYear);
   const ranked = getRanking(yearData, selectedPillar);
   const rank = ranked.findIndex((r) => r.regionId === selectedRegion) + 1;
-  const yoy = getYoYChange(DTI_DATA, selectedRegion, selectedYear, selectedPillar);
+  const yoy = getYoYChange(allData, selectedRegion, selectedYear, selectedPillar);
 
-  const govVal = getDTIValue(selectedRegion, selectedYear, 'gov');
-  const econVal = getDTIValue(selectedRegion, selectedYear, 'econ');
-  const socVal = getDTIValue(selectedRegion, selectedYear, 'soc');
+  const govVal = getValue(selectedRegion, selectedYear, 'gov');
+  const econVal = getValue(selectedRegion, selectedYear, 'econ');
+  const socVal = getValue(selectedRegion, selectedYear, 'soc');
 
   return (
     <div className="rounded-lg border p-4 space-y-3" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
@@ -75,4 +76,9 @@ export default function RegionDetail() {
       </div>
     </div>
   );
+
+  function getValue(regionId: RegionId, year: Year, pillar: Pillar): number {
+    const record = allData.find((d) => d.regionId === regionId && d.year === year);
+    return record ? record[pillar] : 0;
+  }
 }

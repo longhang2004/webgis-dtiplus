@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS regions (
   provinces   TEXT[],
   area_km2    NUMERIC(10,2),
   population  INTEGER,
-  geom        GEOMETRY(MULTIPOLYGON, 4326)
+  geom        GEOMETRY(MULTIPOLYGON, 4326),
+  CONSTRAINT regions_geom_valid CHECK (geom IS NULL OR ST_IsValid(geom))
 );
 
 -- Table: dti_data
@@ -35,6 +36,18 @@ CREATE TABLE IF NOT EXISTS dti_data (
 
 -- Spatial index for geometry queries
 CREATE INDEX IF NOT EXISTS idx_regions_geom ON regions USING gist(geom);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'regions_geom_valid'
+  ) THEN
+    ALTER TABLE regions
+      ADD CONSTRAINT regions_geom_valid CHECK (geom IS NULL OR ST_IsValid(geom));
+  END IF;
+END $$;
 
 -- Performance indexes for DTI queries
 CREATE INDEX IF NOT EXISTS idx_dti_year ON dti_data(year);

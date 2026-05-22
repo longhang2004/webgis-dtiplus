@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../../store/appStore';
-import { getDTIForYear, getDTIValue } from '../../data/dti-data';
 import { REGION_META } from '../../data/region-meta';
 import { getDTIColor, REGION_COLORS } from '../../utils/colorScale';
 import { computeStats, getRanking } from '../../utils/statistics';
 import { RegionId, Year, Pillar } from '../../types';
+import { useMapData } from '../../hooks/useMapData';
 
 const REGION_IDS: RegionId[] = ['DBSH', 'DNB', 'BTB', 'DBSCL', 'TDMNPB', 'TN'];
 
@@ -21,16 +21,17 @@ function formatDiff(val: number): string {
 export default function ComparisonPanel() {
   const { splitYear, selectedYear, selectedPillar, selectedRegion, setRegion } = useAppStore();
   const { t } = useTranslation();
+  const { allData } = useMapData();
 
-  const fromData = getDTIForYear(splitYear);
-  const toData = getDTIForYear(selectedYear);
+  const fromData = allData.filter((d) => d.year === splitYear);
+  const toData = allData.filter((d) => d.year === selectedYear);
   const fromStats = computeStats(fromData, selectedPillar);
   const toStats = computeStats(toData, selectedPillar);
 
   // Per-region comparison, sorted by absolute change descending
   const regionChanges = REGION_IDS.map((id) => {
-    const from = getDTIValue(id, splitYear, selectedPillar);
-    const to = getDTIValue(id, selectedYear, selectedPillar);
+    const from = getValue(id, splitYear, selectedPillar);
+    const to = getValue(id, selectedYear, selectedPillar);
     const diff = to - from;
     const pctChange = from > 0 ? (diff / from) : 0;
     return { id, from, to, diff, pctChange };
@@ -245,4 +246,9 @@ export default function ComparisonPanel() {
       </div>
     </div>
   );
+
+  function getValue(regionId: RegionId, year: Year, pillar: Pillar): number {
+    const record = allData.find((d) => d.regionId === regionId && d.year === year);
+    return record ? record[pillar] : 0;
+  }
 }

@@ -2,11 +2,11 @@ import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import L, { PathOptions, GeoJSON as LGeoJSON } from 'leaflet';
 import { RegionId, Year, Pillar } from '../../types';
-import { DTI_DATA, getDTIValue } from '../../data/dti-data';
 import { getDTIColor } from '../../utils/colorScale';
 import { REGION_META } from '../../data/region-meta';
 import { getRanking } from '../../utils/statistics';
 import regionsGeoJSON from '../../data/geojson/vietnam-regions.geojson';
+import { useMapData, useRegionsGeoJSON } from '../../hooks/useMapData';
 import i18n from '../../i18n';
 
 interface Props {
@@ -18,6 +18,9 @@ interface Props {
 
 export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegionClick }: Props) {
   const map = useMap();
+  const { allData } = useMapData();
+  const { geoJSON } = useRegionsGeoJSON();
+  const activeGeoJSON = (geoJSON ?? regionsGeoJSON) as GeoJSON.FeatureCollection;
   const layerRef = useRef<LGeoJSON | null>(null);
   const propsRef = useRef({ year, pillar, selectedRegion, onRegionClick });
 
@@ -26,7 +29,7 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
   });
 
   const getStyle = (regionId: string, isSelected: boolean): PathOptions => {
-    const value = getDTIValue(regionId as RegionId, propsRef.current.year, propsRef.current.pillar);
+    const value = getValue(regionId as RegionId, propsRef.current.year, propsRef.current.pillar);
     return {
       fillColor: getDTIColor(value),
       weight: isSelected ? 3.5 : 1.6,
@@ -36,7 +39,7 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
   };
 
   const buildMiniChart = (regionId: RegionId, activePillar: Pillar): string => {
-    const series = DTI_DATA
+    const series = allData
       .filter((d) => d.regionId === regionId)
       .sort((a, b) => a.year - b.year)
       .map((d) => ({ year: d.year, value: d[activePillar] }));
@@ -70,14 +73,14 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
   const buildPopupContent = (regionId: RegionId): string => {
     const { year: activeYear, pillar: activePillar } = propsRef.current;
     const meta = REGION_META[regionId];
-    const yearData = DTI_DATA.filter((d) => d.year === activeYear);
+    const yearData = allData.filter((d) => d.year === activeYear);
     const ranked = getRanking(yearData, activePillar);
     const rank = ranked.findIndex((r) => r.regionId === regionId) + 1;
-    const total = getDTIValue(regionId, activeYear, 'total');
-    const gov = getDTIValue(regionId, activeYear, 'gov');
-    const econ = getDTIValue(regionId, activeYear, 'econ');
-    const soc = getDTIValue(regionId, activeYear, 'soc');
-    const value = getDTIValue(regionId, activeYear, activePillar);
+    const total = getValue(regionId, activeYear, 'total');
+    const gov = getValue(regionId, activeYear, 'gov');
+    const econ = getValue(regionId, activeYear, 'econ');
+    const soc = getValue(regionId, activeYear, 'soc');
+    const value = getValue(regionId, activeYear, activePillar);
     const color = getDTIColor(value);
     const regionName = i18n.t(`regions.${regionId}.name`, { defaultValue: meta?.name ?? regionId });
 
@@ -118,7 +121,7 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
       map.removeLayer(layerRef.current);
     }
 
-    const geoLayer = L.geoJSON(regionsGeoJSON as GeoJSON.FeatureCollection, {
+    const geoLayer = L.geoJSON(activeGeoJSON, {
       style: (feature) => {
         const id = feature?.properties?.region_id ?? '';
         return getStyle(id, id === selectedRegion);
@@ -130,7 +133,7 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
         // Bind tooltip using Leaflet's built-in API
         (layer as L.Path).bindTooltip(
           () => {
-            const value = getDTIValue(regionId, propsRef.current.year, propsRef.current.pillar);
+            const value = getValue(regionId, propsRef.current.year, propsRef.current.pillar);
             const regionName = i18n.t(`regions.${regionId}.name`, { defaultValue: meta?.name ?? regionId });
             return `<strong style="color:#e2eaff">${regionName}</strong><br/>DTI+: <span style="color:#00d4aa;font-family:monospace;font-weight:600">${value.toFixed(3)}</span>`;
           },
@@ -166,7 +169,7 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
       if (layerRef.current) map.removeLayer(layerRef.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, year, pillar]);
+  }, [map, year, pillar, activeGeoJSON, allData]);
 
   // Update selected style without recreating layer
   useEffect(() => {
@@ -180,4 +183,9 @@ export default function ChoroplethLayer({ year, pillar, selectedRegion, onRegion
   }, [selectedRegion]);
 
   return null;
+
+  function getValue(regionId: RegionId, activeYear: Year, activePillar: Pillar): number {
+    const record = allData.find((d) => d.regionId === regionId && d.year === activeYear);
+    return record ? record[activePillar] : 0;
+  }
 }
