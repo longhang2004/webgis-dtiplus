@@ -2,7 +2,6 @@
   "header": {
     "app_title": "WebGIS DTI+",
     "app_subtitle": "WebGIS DTI+ | Spatial Differentiation of Digital Development in Vietnam",
-    "department": "Department of Urban Geography · USSH · VNU-HCM · 2025",
     "data": "Data",
     "about": "About",
     "light": "Light",
@@ -15,11 +14,9 @@
     "close": "Close",
     "subtitle": "Analyzing the spatial differentiation of digital infrastructure and capability among economic regions of Vietnam in 2020–2025 using WebGIS",
     "team_label": "Research Team",
-    "lead": "Lead: Lê Ngọc Phương Thư (ID: 2456080090)",
-    "member": "Member: Hàng Nhựt Long (ID: 2211874)",
+    "lead": "Lead: Lê Ngọc Phương Thư",
+    "member": "Member: Hàng Nhựt Long",
     "supervisor": "Supervisor: MSc. Lê Khánh Hưng",
-    "institution_label": "Institution",
-    "institution_desc": "Department of Urban Geography, University of Social Sciences and Humanities, VNU-HCM",
     "dti_label": "About DTI+ Index",
     "dti_desc": "The DTI+ index is an expanded composite index built from official DTI data by the Ministry of Information and Communications, aggregated across 6 economic regions using population-weighted averages. Scale 0–1, higher means more digital development.",
     "note_2025": "* 2025 data is estimated based on the 2020–2024 trend."

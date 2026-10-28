@@ -630,7 +630,7 @@ export async function exportMapPNG(
   ctx.fillStyle = muted;
   ctx.font = `${10 * s}px -apple-system, "Segoe UI", sans-serif`;
   ctx.fillText(
-    `${i18n.t('header.app_subtitle')} · ${i18n.t('header.department')}`,
+    i18n.t('header.app_subtitle'),
     20 * s,
     footerY + 22 * s,
   );

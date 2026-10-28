@@ -2,7 +2,6 @@
   "header": {
     "app_title": "WebGIS DTI+",
     "app_subtitle": "WebGIS DTI+ | Phân hóa không gian phát triển số Việt Nam",
-    "department": "Khoa Địa Lý - Đô Thị · ĐHKHXH&NV · ĐHQG TP.HCM · 2025",
     "data": "Số liệu",
     "about": "Giới thiệu",
     "light": "Sáng",
@@ -15,11 +14,9 @@
     "close": "Đóng",
     "subtitle": "Phân tích sự phân hóa không gian của hạ tầng và năng lực số giữa các vùng kinh tế Việt Nam giai đoạn 2020–2025 bằng WebGIS",
     "team_label": "Nhóm nghiên cứu",
-    "lead": "Chủ nhiệm: Lê Ngọc Phương Thư (MSSV: 2456080090)",
-    "member": "Thành viên: Hàng Nhựt Long (MSSV: 2211874)",
+    "lead": "Chủ nhiệm: Lê Ngọc Phương Thư",
+    "member": "Thành viên: Hàng Nhựt Long",
     "supervisor": "GVHD: ThS. Lê Khánh Hưng",
-    "institution_label": "Đơn vị",
-    "institution_desc": "Khoa Địa Lý - Đô Thị, Trường Đại học Khoa học Xã hội và Nhân văn, ĐHQG TP.HCM",
     "dti_label": "Về chỉ số DTI+",
     "dti_desc": "Chỉ số DTI+ là chỉ số tổng hợp mở rộng được xây dựng từ dữ liệu DTI chính thức của Bộ TT&TT, tổng hợp theo 6 vùng kinh tế bằng phương pháp trung bình gia quyền dân số. Thang đo 0–1, càng cao càng phát triển số.",
     "note_2025": "* Số liệu năm 2025 là ước tính dựa trên xu hướng giai đoạn 2020–2024."

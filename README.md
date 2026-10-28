@@ -2,9 +2,6 @@
 
 > **Ứng dụng WebGIS trong phân tích sự phân hoá không gian về chuyển đổi số giữa các vùng Kinh tế Việt Nam giai đoạn 2020-2025**
 
-Đề tài nghiên cứu khoa học sinh viên cấp trường, năm học 2025-2026  
-Khoa Địa lý - Đô thị, Trường ĐH KHXH&NV - ĐHQG TP.HCM
-
 🌐 **Live Demo**: [https://webgis-dtiplus.vercel.app](https://webgis-dtiplus.vercel.app)
 
 ---

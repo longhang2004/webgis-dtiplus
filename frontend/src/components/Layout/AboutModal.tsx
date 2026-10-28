@@ -66,14 +66,6 @@ export default function AboutModal({ onClose }: Props) {
           </div>
           <div>
             <p className="font-semibold mb-2 text-base" style={{ color: 'var(--accent2)' }}>
-              {t('about.institution_label')}
-            </p>
-            <p style={{ color: 'var(--text)' }}>
-              {t('about.institution_desc')}
-            </p>
-          </div>
-          <div>
-            <p className="font-semibold mb-2 text-base" style={{ color: 'var(--accent2)' }}>
               {t('about.dti_label')}
             </p>
             <p style={{ color: 'var(--text)' }}>

@@ -24,9 +24,6 @@ export default function Header() {
                 {t('header.app_subtitle')}
               </span>
             </h1>
-            <p className="text-[10px] sm:text-xs truncate hidden sm:block" style={{ color: 'var(--muted)' }}>
-              {t('header.department')}
-            </p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
