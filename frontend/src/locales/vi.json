@@ -10,13 +10,9 @@
     "vi": "VI"
   },
   "about": {
-    "title": "Giới thiệu đề tài",
+    "title": "Giới thiệu hệ thống",
     "close": "Đóng",
     "subtitle": "Phân tích sự phân hóa không gian của hạ tầng và năng lực số giữa các vùng kinh tế Việt Nam giai đoạn 2020–2025 bằng WebGIS",
-    "team_label": "Nhóm nghiên cứu",
-    "lead": "Chủ nhiệm: Lê Ngọc Phương Thư",
-    "member": "Thành viên: Hàng Nhựt Long",
-    "supervisor": "GVHD: ThS. Lê Khánh Hưng",
     "dti_label": "Về chỉ số DTI+",
     "dti_desc": "Chỉ số DTI+ là chỉ số tổng hợp mở rộng được xây dựng từ dữ liệu DTI chính thức của Bộ TT&TT, tổng hợp theo 6 vùng kinh tế bằng phương pháp trung bình gia quyền dân số. Thang đo 0–1, càng cao càng phát triển số.",
     "note_2025": "* Số liệu năm 2025 là ước tính dựa trên xu hướng giai đoạn 2020–2024."

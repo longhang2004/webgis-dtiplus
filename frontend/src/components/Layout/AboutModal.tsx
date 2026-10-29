@@ -56,16 +56,6 @@ export default function AboutModal({ onClose }: Props) {
         <div className="space-y-5 text-base leading-relaxed" style={{ color: 'var(--text)' }}>
           <div>
             <p className="font-semibold mb-2 text-base" style={{ color: 'var(--accent2)' }}>
-              {t('about.team_label')}
-            </p>
-            <ul className="list-disc pl-5 space-y-2 marker:text-[var(--muted)]" style={{ color: 'var(--text)' }}>
-              <li>{t('about.lead')}</li>
-              <li>{t('about.member')}</li>
-              <li>{t('about.supervisor')}</li>
-            </ul>
-          </div>
-          <div>
-            <p className="font-semibold mb-2 text-base" style={{ color: 'var(--accent2)' }}>
               {t('about.dti_label')}
             </p>
             <p style={{ color: 'var(--text)' }}>

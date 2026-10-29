@@ -10,13 +10,9 @@
     "vi": "VI"
   },
   "about": {
-    "title": "About the Project",
+    "title": "About the System",
     "close": "Close",
     "subtitle": "Analyzing the spatial differentiation of digital infrastructure and capability among economic regions of Vietnam in 2020–2025 using WebGIS",
-    "team_label": "Research Team",
-    "lead": "Lead: Lê Ngọc Phương Thư",
-    "member": "Member: Hàng Nhựt Long",
-    "supervisor": "Supervisor: MSc. Lê Khánh Hưng",
     "dti_label": "About DTI+ Index",
     "dti_desc": "The DTI+ index is an expanded composite index built from official DTI data by the Ministry of Information and Communications, aggregated across 6 economic regions using population-weighted averages. Scale 0–1, higher means more digital development.",
     "note_2025": "* 2025 data is estimated based on the 2020–2024 trend."
